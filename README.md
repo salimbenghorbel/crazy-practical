@@ -55,6 +55,7 @@ Every team will be assigned a unique radio channel and Crazyflie address. All wh
 For developing the code for the practical, you will need to clone this repository with its submodules via the following commands:
 
 ```git clone https://github.com/dronecourse-epfl/crazy-practical/```
+
 ```git submodule update --init --recursive```
 
 # Coding your algorithm

@@ -8,7 +8,7 @@ For this practical, every team will one of their own laptop. Bitcraze supports t
 
 ## 1. Unpacking
 At the beginning of the practical, every team will receive a box with the necessary hardware. This includes:
-1. One Crazyflie package
+1. One (Crazyflie 2.1 package)[https://store.bitcraze.io/collections/kits/products/crazyflie-2-1]
   * 1 x Crazyflie 2.X control board with all components mounted
   * 5 x CW propellers
   * 5 x CCW propellers
@@ -19,11 +19,11 @@ At the beginning of the practical, every team will receive a box with the necess
   * 2 x Long expansion connector pins (1×10, 2mm spacing, 14 mm long)
   * 1 x Battery holder expansion board
   * 1 x USB cable (only with the Crazyflie 2.1)
-2. One spare part bundle
+2. One (spare part bundle)[https://store.bitcraze.io/products/spare-part-bundle]
   * 2 x spare motors
   * 2 spare motor mounts pack
   * spare propellers (4 x CW and 4 x CCW)
-3. One flow deck v2
+3. One (flow deck v2)[https://www.bitcraze.io/flow-deck-v2/]
 4. One pair of safety glasses for every team member
 5. One cow-pattern carpet
 

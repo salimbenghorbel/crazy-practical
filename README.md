@@ -17,7 +17,7 @@ For this practical, each team is required to use one of their personal laptops. 
 ## 1. Unpacking
 At the beginning of the practical, every team will receive a box with the necessary hardware. This includes:
 1. One [Crazyflie package](https://store.bitcraze.io/collections/kits/products/crazyflie-2-1)
-  * 1 x Crazyflie 2.X control board with all components mounted
+  * 1 x Crazyflie 2.1 control board with all components mounted
   * 5 x CW propellers
   * 5 x CCW propellers
   * 6 x Motor mounts

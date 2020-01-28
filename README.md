@@ -23,8 +23,9 @@ At the beginning of the course, every team you will receive a box with the neces
   * 2 x spare motors
   * 2 spare motor mounts pack
   * spare propellers (4 x CW and 4 x CCW)
-3. One pair of safety glasses for every team member
-4. One cow-pattern carpet
+3. One flow deck v2
+4. One pair of safety glasses for every team member
+5. One cow-pattern carpet
 
 ## 2. Assembling
 Assembling your Crazyflie 2.X will probably take less than 10 minutes, but there are a few pitfalls. So make sure to follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#assembling).

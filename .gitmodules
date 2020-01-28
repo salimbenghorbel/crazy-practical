@@ -1,0 +1,3 @@
+[submodule "crazyflie-lib-python"]
+	path = crazyflie-lib-python
+	url = git@github.com:dronecourse-epfl/crazyflie-lib-python.git

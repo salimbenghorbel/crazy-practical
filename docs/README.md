@@ -6,12 +6,14 @@ In this practical, you will learn how to program a [Crazyflie](https://www.bitcr
 <p align="center">
 <img width=400 src="https://github.com/dronecourse-epfl/crazy-practical/blob/master/docs/pictures/crazypractical_02.png"/>
 </p>
-TODO: add images here!
+
+**TODO: update image here!**
 
 To complete the practical, follow carefully the instructions below. They will guide you through the assembling of the hardware, the installation of the required software and the algorithm coding.
 
 At the end of the practical, on Tue 26th May, we will organize a competition during the course hours where your algorithm will compete. The grading will be done accoring to the following criteria:
-TODO: add the grading here!
+
+**TODO: add the grading system here!**
 
 ## Requirements
 For this practical, each team is required to use one of their personal laptops. Bitcraze supports the installation of the software on Windows, Linux, OS X and Virtual Machines. However, we tested the installation process only on:

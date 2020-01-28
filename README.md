@@ -43,13 +43,13 @@ Assembling your Crazyflie 2.X will probably take less than 10 minutes, but there
 Follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#inst-comp) to install the Crazyflie Client and connect to your Crazyflie.
 
 ## 4. Configuring the Crazyradio and the Crazyflie address
-Every team will be assigned a unique radio channel and Crazyflie address. All what you need to do is:
-* plug the Crazyradio in your pc
-* start the Crazyflie Client
-* select your Crazyradio and 'Scan'
-* connect to your Crazyfie (default address is 0xE7E7E7E7E7)
-* in the 'Connect' tab on top enter the new Crazyradio channel and Crazyflie address
-* restart the Crazyflie
+Every team will be assigned a unique radio channel and Crazyflie address. All you need to do is:
+* Plug the Crazyradio in your pc
+* Start the Crazyflie Client
+* Select your Crazyradio and 'Scan'
+* Connect to your Crazyfie (default address is 0xE7E7E7E7E7)
+* In the 'Connect' tab on top, enter the Crazyradio channel and Crazyflie address that have been assigned to your team
+* Restart the Crazyflie to make the changes effective
 
 ## 5. Cloning the repo
 For developing the code for the practical, you will need to clone this repository with its submodules via the following commands:

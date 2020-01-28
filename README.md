@@ -7,7 +7,7 @@ For this practical, every team will one of their own laptop. Bitcraze supports t
 2. Ubuntu 16.04
 
 ## 1. Unpacking
-At the beginning of the course, every team you will receive a box with the necessary hardware. This includes:
+At the beginning of the practical, every team will receive a box with the necessary hardware. This includes:
 1. One Crazyflie package
   * 1 x Crazyflie 2.X control board with all components mounted
   * 5 x CW propellers

@@ -1,7 +1,11 @@
 # crazy-practical
 Crazyflie hardware practical for the Aerial Robots course at EPFL.
 
-In this practical, you will learn how to program a [Crazyflie](https://www.bitcraze.io/) to precisely land on a spot with the help of minimal sensory information. You will work in a team of maximum 4 members. Teams will be defined at the beginning of the course.
+In this practical, you will learn how to program a [Crazyflie](https://www.bitcraze.io/) to precisely land on a platform with the help of minimal sensory information. You will work in a team of maximum 4 members. Teams will be defined at the beginning of the course.
+
+<p align="center">
+<img width=400 src="https://github.com/dronecourse-epfl/crazy-practical/blob/master/docs/pictures/crazypractical_02.png"/>
+</p>
 TODO: add images here!
 
 To complete the practical, follow carefully the instructions below. They will guide you through the assembling of the hardware, the installation of the required software and the algorithm coding.
@@ -57,8 +61,6 @@ For developing the code for the practical, you will need to clone this repositor
 ```git clone https://github.com/dronecourse-epfl/crazy-practical/```
 
 ```git submodule update --init --recursive```
-
-```cd crazyflie-lib-python && git checkout crazy-practical```
 
 # Coding your algorithm
 Now it's your time to code!

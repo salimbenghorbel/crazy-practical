@@ -1,5 +1,13 @@
 # crazy-practical
-Crazyflie hardware practical for the Aerial Robots course at EPFL. During the crazy-practical you will work in a team of maximum 4 members. Teams will be defined at the beginning of the course.
+Crazyflie hardware practical for the Aerial Robots course at EPFL.
+
+In this practical, you will learn how to program a [Crazyflie](https://www.bitcraze.io/) to precisely land on a spot with the help of minimal sensory information. You will work in a team of maximum 4 members. Teams will be defined at the beginning of the course.
+TODO: add images here!
+
+To complete the practical, follow carefully the instructions below. They will guide you through the assembling of the hardware, the installation of the required software and the algorithm coding.
+
+At the end of the practical, on Tue 26th May, we will organize a competition during the course hours where your algorithm will compete. The grading will be done accoring to the following criteria:
+TODO: add the grading here!
 
 ## Requirements
 For this practical, each team is required to use one of their personal laptops. Bitcraze supports the installation of the software on Windows, Linux, OS X and Virtual Machines. However, we tested the installation process only on:

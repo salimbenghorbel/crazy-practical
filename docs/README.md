@@ -54,8 +54,10 @@ Every team will be assigned a unique radio channel and Crazyflie address. All yo
 * Start the Crazyflie Client
 * Select your Crazyradio and 'Scan'
 * Connect to your Crazyfie (default address is 0xE7E7E7E7E7)
-* In the 'Connect' tab on top, enter the Crazyradio channel and Crazyflie address that have been assigned to your team
-* Restart the Crazyflie to make the changes effective
+* In the 'Connect' tab on top, select 'Configure 2.X'
+* In the window that openned up, enter the channel number and radio address that have been assigned to your team. Then, click 'Write'.
+* Restart the Crazyflie and the client
+* Connect to your Crazyfie using your assigned address
 
 ## 5. Cloning the repo
 For developing the code for the practical, you will need to clone this repository with its submodules via the following commands:

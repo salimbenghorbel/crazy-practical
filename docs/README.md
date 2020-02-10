@@ -15,12 +15,23 @@ At the end of the practical, on Tue 26th May, we will organize a competition dur
 
 ## Grading
 
-Grading will depend on the accomplishment of the task. The grading details can be found on the [Moodle page](https://moodle.epfl.ch/course/view.php?id=15799) of the course.
+Your final score will be made up of four parts. Three of the scores are binary, so you either fullfill them, in which case you get all points, or you do not, which means you receive no points. 
 
-**TODO: add the grading system here!**
+Binary scores, each worth 5 points:
+* _s_: started - the Crazyfie took off successfully
+* _a_: alive - there was no crash during the run (Crazyflie landed without crash or is still hovering at the end of the task)
+* _r_: reached target - the Crazyflie touched the top surface of the platform
 
-**TODO: update time limit in grading and mention time limit before**
+On top of that, there is a continuous score which is worth 10 points. It will grade you on the time needed to finish the task. This score will only be assigned if you fullfill _r_ (i.e. if the Crazyflie touched the top surface of the platform). If you need the whole 2 minutes, you will receive zero points. If you need zero seconds, you will receive 10 points. The scores in between will be distributed linearly.
 
+Continuous score, worth max 10 points:
+* _t_ = (2min - time_needed)/(2min) * 10points
+
+The final score will therefore be:
+
+_score_ = _s_ + _a_ + _r_ + _t_
+
+**TODO: add link on moodle pointing here for more info about scoring system**
 
 ## Requirements
 For this practical, each team is required to use one of their personal laptops. Bitcraze supports the installation of the software on Windows, Linux, OS X and Virtual Machines. However, we tested the installation process only on:

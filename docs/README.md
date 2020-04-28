@@ -1,17 +1,17 @@
 # crazy-practical
 Crazyflie hardware practical for the Aerial Robots course at EPFL.
 
-In this practical, you will learn how to program a [Crazyflie](https://www.bitcraze.io/) to precisely land on a platform with the help of minimal sensory information. You will work in a team of maximum 4 members. Teams will be defined at the beginning of the course.
+In this practical, you will learn how to program a [Crazyflie](https://www.bitcraze.io/) to find and precisely land on a platform with the help of minimal sensory information. You will work in a team of maximum 4 members. Teams will be defined at the beginning of the course.
 
 <p align="center">
 <img width=400 src="https://github.com/dronecourse-epfl/crazy-practical/blob/master/docs/pictures/crazypractical_02.png"/>
 </p>
 
-**TODO: update image here!**
+The drone takes off from a fixed position placed on the cow-pattern carpet made of 4 by 4 pieces. Thanks to the optic-flow sensor and a z-range finder it can track its movements and find the landing pad on the carpet. Once that the position of the landing pad is correctly estimated, the drone has to precisely land on it.
 
 To complete the practical, follow carefully the instructions below. They will guide you through the assembling of the hardware, the installation of the required software and the algorithm coding.
 
-At the end of the practical, on Tue 26th May, we will organize a competition during the course hours where your algorithm will compete. The grading will be done accoring to the following criteria:
+The second to last day of the practical, on Mon 25th May, every team will be given the coordinates of where to place the box on the matrass and by the end of the practical, on Tue 26th May, you will submit a video of your drone performing the task with a close-up of the final landing. The grading will be done accoring to the following criteria.
 
 ## Grading
 
@@ -30,8 +30,6 @@ Continuous score, worth max 10 points:
 The final score will therefore be:
 
 _score_ = _s_ + _a_ + _r_ + _t_
-
-**TODO: add link on moodle pointing here for more info about scoring system**
 
 ## Requirements
 For this practical, each team is required to use one of their personal laptops. Bitcraze supports the installation of the software on Windows, Linux, OS X and Virtual Machines. However, we tested the installation process only on:
@@ -55,16 +53,38 @@ At the beginning of the practical, every team will receive a box with the necess
   * 2 x spare motors
   * 2 spare motor mounts pack
   * spare propellers (4 x CW and 4 x CCW)
-4. One additional [lipo battery](https://store.bitcraze.io/collections/spare-parts-crazyflie-2-0/products/240mah-lipo-battery-including-500ma-usb-charger)
-3. One [flow deck v2](https://store.bitcraze.io/collections/decks/products/flow-deck-v2)
-4. One pair of safety glasses for every team member
-5. One cow-pattern carpet
+3. One additional [lipo battery](https://store.bitcraze.io/collections/spare-parts-crazyflie-2-0/products/240mah-lipo-battery-including-500ma-usb-charger)
+4. One [flow deck v2](https://store.bitcraze.io/collections/decks/products/flow-deck-v2)
+5. One cow-pattern carpet (4 by 4 pieces)
 
 ## 2. Assembling
 Assembling your Crazyflie 2.X will probably take less than 10 minutes, but there are a few pitfalls. So make sure to follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#assembling).
 
 ## 3. Installing on a computer
 Follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#inst-comp) to install the Crazyflie Client and connect to your Crazyflie.
+
+## 3 bis. Setting up the radio interface
+You need to make sure that you have the right usb permission for the radio interface. You can find extensive instructions [here](https://github.com/bitcraze/crazyflie-lib-python#setting-udev-permissions).
+On your terminal issue the following commands:
+```
+sudo groupadd plugdev
+sudo usermod -a -G plugdev $USER
+```
+Then log out and log back in to update the plugdev group.
+
+Create the following file
+```
+touch /etc/udev/rules.d/99-crazyradio.rules
+```
+
+Then edit it with the text editor of your preference, and add the following lines:
+```
+# Crazyradio (normal operation)
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1915", ATTRS{idProduct}=="7777", MODE="0664", GROUP="plugdev"
+# Bootloader
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1915", ATTRS{idProduct}=="0101", MODE="0664", GROUP="plugdev"
+```
+
 
 ## 4. Configuring the Crazyradio and the Crazyflie address
 Every team will be assigned a unique radio channel and Crazyflie address. All you need to do is:

@@ -65,6 +65,8 @@ For developing the code for the practical, you will need to clone this repositor
 
 ```git clone https://github.com/dronecourse-epfl/crazy-practical/```
 
+```cd crazy-practical```
+
 ```git submodule update --init --recursive```
 
 Then install the Crazyflie Python library with the command:

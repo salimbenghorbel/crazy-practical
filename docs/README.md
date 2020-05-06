@@ -60,10 +60,21 @@ At the beginning of the practical, every team will receive a box with the necess
 ## 2. Assembling
 Assembling your Crazyflie 2.X will probably take less than 10 minutes, but there are a few pitfalls. So make sure to follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#assembling).
 
-## 3. Installing on a computer
+## 5. Installing the Pyhon library
+For developing the code for the practical, you will need to clone this repository with its submodules via the following commands:
+
+```git clone https://github.com/dronecourse-epfl/crazy-practical/```
+
+```git submodule update --init --recursive```
+
+Then install the Crazyflie Python library with the command:
+
+```python install -e .```
+
+## 4. Installing the Crazyflie Client
 Follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#inst-comp) to install the Crazyflie Client and connect to your Crazyflie.
 
-## 3 bis. Setting up the radio interface
+## 5. Setting up the radio interface
 You need to make sure that you have the right usb permission for the radio interface. You can find extensive instructions [here](https://github.com/bitcraze/crazyflie-lib-python#setting-udev-permissions).
 On your terminal issue the following commands:
 ```
@@ -86,7 +97,7 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="1915", ATTRS{idProduct}=="0101", MODE="0664"
 ```
 
 
-## 4. Configuring the Crazyradio and the Crazyflie address
+## 6. Configuring the Crazyradio and the Crazyflie address
 Every team will be assigned a unique radio channel and Crazyflie address. All you need to do is:
 * Plug the Crazyradio in your pc
 * Start the Crazyflie Client
@@ -96,17 +107,6 @@ Every team will be assigned a unique radio channel and Crazyflie address. All yo
 * In the window that openned up, enter the channel number and radio address that have been assigned to your team. Then, click 'Write'.
 * Restart the Crazyflie and the client
 * Connect to your Crazyfie using your assigned address
-
-## 5. Cloning the repo
-For developing the code for the practical, you will need to clone this repository with its submodules via the following commands:
-
-```git clone https://github.com/dronecourse-epfl/crazy-practical/```
-
-```git submodule update --init --recursive```
-
-Then install `cflib` with the command
-```python install -e .```
-
 
 # Coding your algorithm
 Now it's your time to code!

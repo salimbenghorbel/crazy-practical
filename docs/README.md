@@ -114,7 +114,7 @@ Every team will be assigned a unique radio channel and Crazyflie address. All yo
 * Restart the Crazyflie and the client
 * Connect to your Crazyfie using your assigned address
 
-## 7. Testing the library
+## 7. Testing the Crazyflie library
 To test that the Python library has been installed properly, you can run one example from the `crazyflie-lib-python`. First, be sure that the crazyflie is on, the radio plugged and the address of the crazyflie is the default one. Then, type one of the following in your terminal:
 
 ```
@@ -139,7 +139,15 @@ To run the examples, call them from the `crazyflie-lib-python` folder like this:
 python cp_examples/position_commander.py
 ```
 ## Connect to your Crazyflie
+Before launching an example, i.e. `position_commander.py`, be sure that you updated the Crazyflie URI [here](https://github.com/dronecourse-epfl/crazyflie-lib-python/blob/c7aa5b66a2a0c43e2988e27b858e5e20f0ebbd76/cp_examples/position_commander.py#L41) with the one of your drone. The default one is:
+
+```uri = 'radio://0/80/2M/E7E7E7E7E7'```
+
+## Sending commands
+To send position commands to your Crazyflie, follow the example `position_commander.py`.
 
 ## Reading and saving sensor measurements
+The file `logger.py` shows how to log your Crazyflie data. Add the variables to log in the `_connected` function [here](https://github.com/dronecourse-epfl/crazyflie-lib-python/blob/c7aa5b66a2a0c43e2988e27b858e5e20f0ebbd76/cp_examples/logger.py#L77).
+
 ## Analysing logs
-## Sending commands
+For analysing the logs, follow the example `logs_analyzer.ipynb`.

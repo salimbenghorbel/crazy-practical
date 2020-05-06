@@ -60,7 +60,7 @@ At the beginning of the practical, every team will receive a box with the necess
 ## 2. Assembling
 Assembling your Crazyflie 2.X will probably take less than 10 minutes, but there are a few pitfalls. So make sure to follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#assembling).
 
-## 5. Installing the Pyhon library
+## 3. Installing the Pyhon library
 For developing the code for the practical, you will need to clone this repository with its submodules via the following commands:
 
 ```git clone https://github.com/dronecourse-epfl/crazy-practical/```

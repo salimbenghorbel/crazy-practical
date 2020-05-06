@@ -104,6 +104,10 @@ For developing the code for the practical, you will need to clone this repositor
 
 ```git submodule update --init --recursive```
 
+Then install `cflib` with the command
+```python install -e .```
+
+
 # Coding your algorithm
 Now it's your time to code!
 You will find example scripts for this practical in `crazyflie-lib-python/cp_example`.

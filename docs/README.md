@@ -71,7 +71,7 @@ For developing the code for the practical, you will need to clone this repositor
 
 Then install the Crazyflie Python library with the command:
 
-```python install -e crazyflie-lib-python```
+```pip install -e crazyflie-lib-python```
 
 ## 4. Installing the Crazyflie Client
 Follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#inst-comp) to install the Crazyflie Client and connect to your Crazyflie.

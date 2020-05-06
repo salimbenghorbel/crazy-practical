@@ -11,25 +11,7 @@ The drone takes off from a fixed position placed on the cow-pattern carpet made 
 
 To complete the practical, follow carefully the instructions below. They will guide you through the assembling of the hardware, the installation of the required software and the algorithm coding.
 
-The second to last day of the practical, on Mon 25th May, every team will be given the coordinates of where to place the box on the matrass and by the end of the practical, on Tue 26th May, you will submit a video of your drone performing the task with a close-up of the final landing. The grading will be done accoring to the following criteria.
-
-## Grading
-
-Your final score will be made up of four parts. Three of the scores are binary, so you either fullfill them, in which case you get all points, or you do not, which means you receive no points. 
-
-Binary scores, each worth 5 points:
-* _s_: started - the Crazyfie took off successfully
-* _a_: alive - there was no crash during the run (Crazyflie landed without crash or is still hovering at the end of the task)
-* _r_: reached target - the Crazyflie touched the top surface of the platform
-
-On top of that, there is a continuous score which is worth 10 points. It will grade you on the time needed to finish the task. This score will only be assigned if you fullfill _r_ (i.e. if the Crazyflie touched the top surface of the platform). If you need the whole 2 minutes, you will receive zero points. If you need zero seconds, you will receive 10 points. The scores in between will be distributed linearly.
-
-Continuous score, worth max 10 points:
-* _t_ = (2min - time_needed)/(2min) * 10points
-
-The final score will therefore be:
-
-_score_ = _s_ + _a_ + _r_ + _t_
+The second to last day of the practical, every team will be given the coordinates of where to place the box on the matrass and by the end of the practical, you will submit a video of your drone performing the task with a close-up of the final landing.
 
 ## Requirements
 For this practical, each team is required to use one of their personal laptops. Bitcraze supports the installation of the software on Windows, Linux, OS X and Virtual Machines. However, we tested the installation process only on:
@@ -74,7 +56,28 @@ Then install the Crazyflie Python library with the command:
 ```pip install -e crazyflie-lib-python```
 
 ## 4. Installing the Crazyflie Client
-Follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#inst-comp) to install the Crazyflie Client and connect to your Crazyflie.
+Follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#inst-comp) to install the Crazyflie Client and connect to your Crazyflie. To install it from source, do the followings.
+
+The client requires Python3, pip and pyqt5 to be installed using the system package manager. For example on Ubuntu/Debian, do:
+
+```
+sudo apt-get install python3 python3-pip python3-pyqt5 python3-pyqt5.qtsvg
+```
+
+Then, clone the `crazyflie-clients-python` repository with:
+
+```git clone https://github.com/bitcraze/crazyflie-clients-python.git```
+
+Then, checkout to commit `07603f7` with:
+
+```
+cd crazyflie-clients-python/
+git checkout 07603f7
+```
+And, finally, install the client with:
+
+```pip3 install -e .```
+
 
 ## 5. Setting up the radio interface
 You need to make sure that you have the right usb permission for the radio interface. You can find extensive instructions [here](https://github.com/bitcraze/crazyflie-lib-python#setting-udev-permissions).
@@ -111,9 +114,31 @@ Every team will be assigned a unique radio channel and Crazyflie address. All yo
 * Restart the Crazyflie and the client
 * Connect to your Crazyfie using your assigned address
 
+## 7. Testing the library
+To test that the Python library has been installed properly, you can run one example from the `crazyflie-lib-python`. First, be sure that the crazyflie is on, the radio plugged and the address of the crazyflie is the default one. Then, type one of the following in your terminal:
+
+```
+python examples/basiclog.py
+```
+
+or
+
+```
+python examples/position_commander_demo.py
+```
+
 # Coding your algorithm
 Now it's your time to code!
-You will find example scripts for this practical in `crazyflie-lib-python/cp_example`.
+You will find example scripts for this practical in `crazyflie-lib-python/cp_examples`.
+
+In the order, `position_commander.py` illustrates how to issue simple position commands, while `logger.py` illustrates how to retrieve position estimates from the Crazyflie and save them in a `csv` file. Your logs are saved in the `logs` folder and you can analyze them in a Python notebook, as shown in the example `logs_analyzer.ipynb`.
+
+To run the examples, call them from the `crazyflie-lib-python` folder like this:
+
+```
+python cp_examples/position_commander.py
+```
+## Connect to your Crazyflie
 
 ## Reading and saving sensor measurements
 ## Analysing logs

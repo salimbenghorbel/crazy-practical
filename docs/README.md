@@ -85,7 +85,7 @@ sudo usermod -a -G plugdev $USER
 ```
 Then log out and log back in to update the plugdev group.
 
-Create the following file
+Create the following file (you may need `sudo` permissions):
 ```
 touch /etc/udev/rules.d/99-crazyradio.rules
 ```
@@ -102,7 +102,8 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="1915", ATTRS{idProduct}=="0101", MODE="0664"
 ## 6. Configuring the Crazyradio and the Crazyflie address
 Every team will be assigned a unique radio channel and Crazyflie address. All you need to do is:
 * Plug the Crazyradio in your pc
-* Start the Crazyflie Client
+* Power on the Crazyflie
+* Start the Crazyflie Client (with the command `cfclient`)
 * Select your Crazyradio and 'Scan'
 * Connect to your Crazyfie (default address is 0xE7E7E7E7E7)
 * In the 'Connect' tab on top, select 'Configure 2.X'

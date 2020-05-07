@@ -56,7 +56,7 @@ Then install the Crazyflie Python library with the command:
 ```pip install -e crazyflie-lib-python```
 
 ## 4. Installing the Crazyflie Client
-Follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#inst-comp) to install the Crazyflie Client and connect to your Crazyflie. To install it from source, do the followings.
+Follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#inst-comp) to install the Crazyflie Client and connect to your Crazyflie. To install it from source on Ubuntu, follow these steps:
 
 The client requires Python3, pip and pyqt5 to be installed using the system package manager. For example on Ubuntu/Debian, do:
 
@@ -77,6 +77,11 @@ git checkout 07603f7
 And, finally, install the client with:
 
 ```pip3 install -e .```
+
+This will build the client in the subfolder `bin` and you can run it with:
+```
+./bin/cfclient
+```
 
 
 ## 5. Setting up the radio interface

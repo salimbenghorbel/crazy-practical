@@ -136,7 +136,9 @@ python examples/position_commander_demo.py
 Now it's your time to code!
 You will find example scripts for this practical in `crazyflie-lib-python/cp_examples`.
 
-In the order, `position_commander.py` illustrates how to issue simple position commands, while `logger.py` illustrates how to retrieve position estimates from the Crazyflie and save them in a `csv` file. Your logs are saved in the `logs` folder and you can analyze them in a Python notebook, as shown in the example `logs_analyzer.ipynb`.
+Several scrips are available: `position_commander.py` illustrates how to issue simple position commands, while `basiclog.py` 
+shows how to acquire and log roll, pitch, and yaw angles estimates from the Crazyflie and save them in a `csv` file. Your logs are saved in the `logs` folder and you can analyze them in a Python notebook, as shown in the example `logs_analyzer.ipynb`.
+Finally, `logandfly.py` combines the two previous examples into one script, where your drone will fly through a simple maneuver and log its position estimated and sensor data. Again, you can visualized the acquired dataset with the `logs_analyzer.ipynb` script.
 
 To run the examples, call them from the `crazyflie-lib-python` folder like this:
 
@@ -152,7 +154,10 @@ Before launching an example, i.e. `position_commander.py`, be sure that you upda
 To send position commands to your Crazyflie, follow the example `position_commander.py`.
 
 ## Reading and saving sensor measurements
-The file `logger.py` shows how to log your Crazyflie data. Add the variables to log in the `_connected` function [here](https://github.com/dronecourse-epfl/crazyflie-lib-python/blob/c7aa5b66a2a0c43e2988e27b858e5e20f0ebbd76/cp_examples/logger.py#L77).
+The file `basiclog.py` shows how to log your Crazyflie data. Add the variables to log in the `_connected` function [here](https://github.com/dronecourse-epfl/crazyflie-lib-python/blob/c7aa5b66a2a0c43e2988e27b858e5e20f0ebbd76/cp_examples/logger.py#L77).
 
-## Analysing logs
-For analysing the logs, follow the example `logs_analyzer.ipynb`.
+## Flight analysis
+The script `logandfly.py` allows to perform a simple manevuer and log estimate positions and sensor readings.
+
+## Visualizing logs
+For visualizing the logs content, follow the example `logs_analyzer.ipynb`.

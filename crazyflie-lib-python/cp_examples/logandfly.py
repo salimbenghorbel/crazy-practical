@@ -40,6 +40,7 @@ from cflib.crazyflie.log import LogConfig
 logging.basicConfig(level=logging.ERROR)
 
 import numpy as np
+import os
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.positioning.position_hl_commander import PositionHlCommander
 
@@ -54,7 +55,6 @@ class LoggingExample:
         """ Initialize and run the example with the specified link_id """
 
         self.count = 0
-        """ Initialize and run the example with the specified link_id """
 
         # Initialize cf object
         self._cf = Crazyflie(rw_cache='./cache')
@@ -70,9 +70,6 @@ class LoggingExample:
 
         # Fly a square
         self.fly_square(link_id)
-
-        # Variable used to keep main loop occupied until disconnect
-        # self.is_connected = True
 
     def _connected(self, link_id):
         """ This callback is called form the Crazyflie API when a Crazyflie
@@ -156,6 +153,8 @@ class LoggingExample:
         # Get timestamp
         dtime = dt.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         # Save log to file
+        if not os.path.exists('logs'):
+            os.makedirs('logs')
         np.savetxt('logs/'+dtime+'.csv', self.logs, delimiter=',')
 
 

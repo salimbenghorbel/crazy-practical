@@ -157,7 +157,7 @@ To send position commands to your Crazyflie, follow the example `position_comman
 The file `basiclog.py` shows how to log your Crazyflie data. Add the variables to log in the `_connected` function [here](https://github.com/dronecourse-epfl/crazyflie-lib-python/blob/c7aa5b66a2a0c43e2988e27b858e5e20f0ebbd76/cp_examples/logger.py#L77).
 
 ## Flight analysis
-The script `logandfly.py` allows to perform a simple manevuer and log estimate positions and sensor readings.
+The script `logandfly.py` allows to perform a simple manevuer and log position estimates and sensor readings.
 
 ## Visualizing logs
 For visualizing the logs content, follow the example `logs_analyzer.ipynb`.

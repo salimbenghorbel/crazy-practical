@@ -50,7 +50,9 @@ class LoggingExample:
     """
 
     def __init__(self, link_uri):
-        """ Initialize and run the example with the specified link_uri """
+        """
+        Initialize and run the example with the specified link_uri
+        """
 
         self.count = 0
         self._cf = Crazyflie(rw_cache='./cache')
@@ -62,7 +64,7 @@ class LoggingExample:
         self._cf.connection_lost.add_callback(self._connection_lost)
 
         # Initialize log variable
-        self.logs = np.zeros([100000,4])
+        self.logs = np.zeros([100000, 4])
 
         print('Connecting to %s' % link_uri)
 
@@ -73,8 +75,10 @@ class LoggingExample:
         self.is_connected = True
 
     def _connected(self, link_uri):
-        """ This callback is called form the Crazyflie API when a Crazyflie
-        has been connected and the TOCs have been downloaded."""
+        """
+        This callback is called form the Crazyflie API when a Crazyflie
+        has been connected and the TOCs have been downloaded.
+        """
         print('Connected to %s' % link_uri)
 
         # The definition of the logconfig can be made before connecting
@@ -105,32 +109,42 @@ class LoggingExample:
         t.start()
 
     def _stab_log_error(self, logconf, msg):
-        """Callback from the log API when an error occurs"""
+        """
+        Callback from the log API when an error occurs
+        """
         print('Error when logging %s: %s' % (logconf.name, msg))
 
     def _stab_log_data(self, timestamp, data, logconf):
-        """Callback froma the log API when data arrives"""
+        """
+        Callback from the log API when data arrives
+        """
         print('[%d][%s]: %s' % (timestamp, logconf.name, data))
         
         # Save info into log variable
-        for idx,i in enumerate(list(data)):
+        for idx, i in enumerate(list(data)):
             self.logs[self.count][idx] = data[i]
 
-        self.count +=1
+        self.count += 1
 
     def _connection_failed(self, link_uri, msg):
-        """Callback when connection initial connection fails (i.e no Crazyflie
-        at the speficied address)"""
+        """
+        Callback when connection initial connection fails (i.e no Crazyflie
+        at the speficied address)
+        """
         print('Connection to %s failed: %s' % (link_uri, msg))
         self.is_connected = False
 
     def _connection_lost(self, link_uri, msg):
-        """Callback when disconnected after a connection has been made (i.e
-        Crazyflie moves out of range)"""
+        """
+        Callback when disconnected after a connection has been made (i.e
+        Crazyflie moves out of range)
+        """
         print('Connection to %s lost: %s' % (link_uri, msg))
 
     def _disconnected(self, link_uri):
-        """Callback when the Crazyflie is disconnected (called in all cases)"""
+        """
+        Callback when the Crazyflie is disconnected (called in all cases)
+        """
         print('Disconnected from %s' % link_uri)
         self.is_connected = False
 

@@ -129,10 +129,10 @@ class LoggingExample:
         print('[%d][%s]: %s' % (timestamp, logconf.name, data))
         
         # Save info into log variable
-        for idx,i in enumerate(list(data)):
+        for idx, i in enumerate(list(data)):
             self.logs[self.count][idx] = data[i]
 
-        self.count +=1
+        self.count += 1
 
     def _connection_failed(self, link_id, msg):
         """Callback when connection initial connection fails (i.e no Crazyflie

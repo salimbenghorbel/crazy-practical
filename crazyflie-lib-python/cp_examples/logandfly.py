@@ -66,7 +66,7 @@ class LoggingExample:
         self._cf.connection_lost.add_callback(self._connection_lost)
 
         # Initialize log variable
-        self.logs = np.zeros([100000,4])
+        self.logs = np.zeros([100000,12])
 
         # Fly a square
         self.fly_square(link_id)
@@ -77,7 +77,15 @@ class LoggingExample:
 
         # The definition of the logconfig can be made before connecting
         self._lg_stab = LogConfig(name='Stabilizer', period_in_ms=10)
-        self._lg_stab.add_variable('range.zrange', 'float')     # Z ranger measurement
+        self._lg_stab.add_variable('range.front', 'float')
+        self._lg_stab.add_variable('range.back', 'float')
+        self._lg_stab.add_variable('range.up', 'float')
+        self._lg_stab.add_variable('range.left', 'float')
+        self._lg_stab.add_variable('range.right', 'float')
+        self._lg_stab.add_variable('range.zrange', 'float') # down
+        self._lg_stab.add_variable('stabilizer.roll', 'float')
+        self._lg_stab.add_variable('stabilizer.pitch', 'float')
+        self._lg_stab.add_variable('stabilizer.yaw', 'float')
         self._lg_stab.add_variable('stateEstimate.x', 'float')  # estimated X coordinate
         self._lg_stab.add_variable('stateEstimate.y', 'float')  # estimated Y coordinate
         self._lg_stab.add_variable('stateEstimate.z', 'float')  # estimated Z coordinate
@@ -149,13 +157,14 @@ class LoggingExample:
         """Callback when the Crazyflie is disconnected (called in all cases)"""
         print('Disconnected from %s' % link_id)
         self.is_connected = False
-
+        
         # Get timestamp
-        dtime = dt.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+        filename = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S.csv")
         # Save log to file
         if not os.path.exists('logs'):
             os.makedirs('logs')
-        np.savetxt('logs/'+dtime+'.csv', self.logs, delimiter=',')
+        filepath = os.path.join(os.getcwd(),'..','logs',filename)
+        np.savetxt(filepath, self.logs, delimiter=',')
 
 
 def connect_to_first_found():

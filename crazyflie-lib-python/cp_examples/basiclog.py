@@ -149,11 +149,12 @@ class LoggingExample:
         self.is_connected = False
 
         # Get timestamp
-        dtime = dt.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+        filename = dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S.csv")
         # Save log to file
         if not os.path.exists('logs'):
             os.makedirs('logs')
-        np.savetxt('logs/'+dtime+'.csv', self.logs, delimiter=',')
+        filepath = os.path.join(os.getcwd(),'..','logs',filename)
+        np.savetxt(filepath, self.logs, delimiter=',')
 
 
 if __name__ == '__main__':

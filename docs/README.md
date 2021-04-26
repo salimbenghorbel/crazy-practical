@@ -1,24 +1,24 @@
 # crazy-practical
 Crazyflie hardware practical for the Aerial Robots course at EPFL.
 
-In this practical, you will learn how to program a [Crazyflie](https://www.bitcraze.io/) to find and precisely land on a platform with the help of minimal sensory information. Additionally, you will use sensor readings to avoid the obstacles present in the environment. You will work in a team of maximum 4 members. Teams will be defined at the beginning of the course.
+In this practical, you will learn how to program a [Crazyflie](https://www.bitcraze.io/) to find and precisely land on a platform with the help of minimal sensory information. Additionally, you will use sensor readings to avoid the obstacles present in the environment. You will work in a team of maximum 4 members. Teams will be defined at the beginning of the practical.
 
 <p align="center">
 <img width=700 src="https://github.com/dronecourse-epfl/crazy-practical/blob/master/docs/pictures/crazyfly_objective_figure.png"/>
 </p>
 
 The **task** you are required to complete is composed of multiple phases:
-* The drone takes off from a take-off pad placed on the cow-pattern carpet made of approximately 3 m by 5 m. 
+* The drone takes off from a take-off pad placed on the pattern carpet the size of approximately 3 m by 5 m. 
 * Thanks to the optic-flow sensor and a z-range finder the drone can track its movements and find the landing pad on the carpet. 
 * Once that the position of the landing pad is correctly estimated, the drone has to precisely land on it.
-* Upon successful landing, the drone is ready to take off again, fly back to the take-off pad and land. 
-* In the workspace there can be few obstacles of unknown dimensions. The drone should be able to avoid collisions.
+* Upon successful landing, the drone is ready to take off again, fly back to the take-off pad and land there.
+* In the workspace, there can be a few obstacles of unknown dimensions. Your developed algorithm should allow the drone to avoid any collisions.
 
 The **learning objectives** for this practical are:
 * assembling a plug-and-play drone;
 * interfacing with the python lib to control the drone;
 * master different flight phases;
-* conducting a flight mission in presence of obstacles. 
+* conducting a flight mission in presence of obstacles.
 
 You will show the aquired competences during a **final in-person demonstration**.
 The last day of the practical, every team will be given the coordinates of where to place the take-off and landing pads and you will be able to fly the drone in three trials. To support your achievements, you will also show a short presentation with:

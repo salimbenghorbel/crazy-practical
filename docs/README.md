@@ -8,23 +8,40 @@ In this practical, you will learn how to program a [Crazyflie](https://www.bitcr
 </p>
 
 The **task** you are required to complete is composed of multiple phases:
-* The drone takes off from a take-off pad placed on the pattern carpet the size of approximately 3 m by 5 m. 
-* Thanks to the optic-flow sensor and a z-range finder the drone can track its movements and find the landing pad on the carpet. 
-* Once that the position of the landing pad is correctly estimated, the drone has to precisely land on it.
+* The drone takes off from a take-off pad placed on the pattern carpet which is the size of approximately 3 m by 5 m.
+* Thanks to the optic-flow sensor and a z-range finder the drone can track its movements and find the landing pad on the carpet.
+* Once the position of the landing pad is correctly estimated, the drone has to precisely land on it.
 * Upon successful landing, the drone is ready to take off again, fly back to the take-off pad and land there.
-* In the workspace, there can be a few obstacles of unknown dimensions. Your developed algorithm should allow the drone to avoid any collisions.
+* In the workspace, there can be a few obstacles of unknown dimensions which it can detect with the multiranger deck. Your developed algorithm should allow the drone to avoid any collisions.
 
 The **learning objectives** for this practical are:
 * assembling a plug-and-play drone;
 * interfacing with the python lib to control the drone;
 * master different flight phases;
-* conducting a flight mission in presence of obstacles.
+* designing a robust algorithm to conduct a flight mission in the presence of obstacles;
+* reporting performance results in a scientific manner.
 
 You will show the aquired competences during a **final in-person demonstration**.
-The last day of the practical, every team will be given the coordinates of where to place the take-off and landing pads and you will be able to fly the drone in three trials. To support your achievements, you will also show a short presentation with:
-* one slide on the method that you used to solve the task
-* one(/two) slide(s) with one(/two) videos of the drone flight. 
-For practicing, you can choose the scenario that you prefer, as long at it demonstrates the learning objectives above. 
+The last day of the practical, every team will be given the coordinates of where to place the take-off and landing pads and you will be able to fly the drone in during three trials. To support your achievements, you will also show a short presentation (7 min max, 4 slides max) which should contain:
+* one slide on the algorithm design that you used to solve the task;
+* one slide on the experimental setup you used;
+* one(/two) slide(s) with one(/two) videos of the drone flights.
+For practicing, you can choose the scenario that you prefer, as long at it demonstrates the learning objectives above.
+Make sure you bring all the hardware (see the list in section [Unpacking](#unpacking)) to the demonstration, as we will collect it right after.
+
+We also ask you to submit a **video** that demonstrate of a trial at home that shows the performance of your algorithm. The video should:
+- be less than 2 min long;
+- show the face of at least one of the group members;
+- show a stop watch/clock at least at the beginning and end;
+- have no cuts - video speed up is allowed, but speed up factor has to be indicated.
+Verify that your video can be played on multiple devices. Preferred format is MP4 with H264 codec.
+
+Add comments to the **code** so that it is clearly understandable what your code does. Add also a `README.md` explaining how to run the code.
+
+For the final **submission** we ask you to upload a zip file with the name `GROUPNUMBER_LASTNAME1_LASTNAME2_LASTNAME3.zip` by *Mai 30, 23:59* on Moodle which contains:
+- the presentation as a PPTX file;
+- the video as MP4;
+- the code in a folder.
 
 To complete the practical, follow carefully the instructions below. They will guide you through the assembling of the hardware, the installation of the required software and the algorithm coding.
 
@@ -35,6 +52,7 @@ For this practical, each team is required to use one of their personal laptops. 
 3. Ubuntu 18.04
 
 ## 1. Unpacking
+<a name="unpacking"></a>
 At the beginning of the practical, every team will receive a box with the necessary hardware. This includes:
 1. One [Crazyflie package](https://store.bitcraze.io/collections/kits/products/crazyflie-2-1)
   * 1 x Crazyflie 2.1 control board with all components mounted
@@ -154,7 +172,7 @@ Now it's your time to code!
 You will find example scripts for this practical in `crazyflie-lib-python/cp_examples`.
 
 Several scrips are available: `position_commander.py` illustrates how to issue simple position commands, while `basiclog.py` 
-shows how to acquire and log roll, pitch, and yaw angles estimates from the Crazyflie and save them in a `csv` file. Your logs are saved in the `logs` folder and you can analyze them in a Python notebook, as shown in the example `logs_analyzer.ipynb`.
+shows how to acquire and log roll, pitch, and yaw angle estimates from the Crazyflie and save them in a `csv` file. Your logs are saved in the `logs` folder and you can analyze them in a Python notebook, as shown in the example `logs_analyzer.ipynb`.
 Finally, `logandfly.py` combines the two previous examples into one script, where your drone will fly through a simple maneuver and log its position estimated and sensor data. Again, you can visualized the acquired dataset with the `logs_analyzer.ipynb` script.
 
 To run the examples, call them from the `crazyflie-lib-python` folder like this:

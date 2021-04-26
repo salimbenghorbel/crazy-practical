@@ -26,6 +26,7 @@ The last day of the practical, every team will be given the coordinates of where
 * one slide on the algorithm design that you used to solve the task;
 * one slide on the experimental setup you used;
 * one(/two) slide(s) with one(/two) videos of the drone flights.
+
 For practicing, you can choose the scenario that you prefer, as long at it demonstrates the learning objectives above.
 Make sure you bring all the hardware (see the list in section [Unpacking](#unpacking)) to the demonstration, as we will collect it right after.
 
@@ -34,6 +35,7 @@ We also ask you to submit a **video** that demonstrate of a trial at home that s
 - show the face of at least one of the group members;
 - show a stop watch/clock at least at the beginning and end;
 - have no cuts - video speed up is allowed, but speed up factor has to be indicated.
+
 Verify that your video can be played on multiple devices. Preferred format is MP4 with H264 codec.
 
 Add comments to the **code** so that it is clearly understandable what your code does. Add also a `README.md` explaining how to run the code.

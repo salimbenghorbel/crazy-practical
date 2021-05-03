@@ -36,7 +36,7 @@ At the beginning of the practical, every team will receive a box with the necess
 3. One additional [lipo battery](https://store.bitcraze.io/collections/spare-parts-crazyflie-2-0/products/240mah-lipo-battery-including-500ma-usb-charger)
 4. One [flow deck v2](https://store.bitcraze.io/collections/decks/products/flow-deck-v2)
 5. One [multi-ranger deck](https://www.bitcraze.io/products/multi-ranger-deck/)
-6. Four pattern carpet piecs
+6. 4 x pattern carpet piecs
 
 ## 2. Assembling
 Assembling your Crazyflie 2.X will probably take less than 10 minutes, but there are a few pitfalls. So make sure to follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#assembling).

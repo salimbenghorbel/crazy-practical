@@ -7,7 +7,7 @@ In this practical, you will learn how to program a [Crazyflie](https://www.bitcr
 <img width=700 src="https://github.com/dronecourse-epfl/crazy-practical/blob/master/docs/pictures/crazyfly_objective_figure.png"/>
 </p>
 
-For more details on the task, submission, schedule and grading, please refer to the moodle page of the course.
+For more details on the task, submission, schedule and grading, please refer to the [moodle](https://moodle.epfl.ch/course/view.php?id=15799) page of the course.
 
 ## Requirements
 For this practical, each team is required to use one of their personal laptops. Bitcraze supports the installation of the software on Windows, Linux, OS X and Virtual Machines. However, we tested the installation process only on:

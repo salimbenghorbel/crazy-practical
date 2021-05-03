@@ -19,24 +19,20 @@ For this practical, each team is required to use one of their personal laptops. 
 <a name="unpacking"></a>
 At the beginning of the practical, every team will receive a box with the necessary hardware. This includes:
 1. One [Crazyflie package](https://store.bitcraze.io/collections/kits/products/crazyflie-2-1)
-  * 1 x Crazyflie 2.1 control board with all components mounted
-  * 5 x CW propellers
-  * 5 x CCW propellers
-  * 6 x Motor mounts
-  * 1 x LiPo battery (240mAh)
-  * 5 x Coreless DC motors
-  * 2 x Short expansion connector pins (1×10, 2mm spacing, 8 mm long)
-  * 2 x Long expansion connector pins (1×10, 2mm spacing, 14 mm long)
-  * 1 x Battery holder expansion board
-  * 1 x USB cable (only with the Crazyflie 2.1)
-2. One [spare part bundle](https://store.bitcraze.io/collections/spare-parts-crazyflie-2-0/products/spare-part-bundle)
-  * 2 x spare motors
-  * 2 spare motor mounts pack
-  * spare propellers (4 x CW and 4 x CCW)
-3. One additional [lipo battery](https://store.bitcraze.io/collections/spare-parts-crazyflie-2-0/products/240mah-lipo-battery-including-500ma-usb-charger)
+  * 1 x Crazyflie 2.1 with all components mounted
+  * 1 x Crazy-radio dongle
+  * 2 x LiPo battery (240mAh)
+  * 1 x Battery charger
+  * 1 x Battery deck
+  * 1 x USB cable
+2. One spare parts set
+  * 1 x spare motor
+  * 2 x spare motor mounts
+  * 3 x spare propellers CW 
+  * 3 x spare propellers CCW
 4. One [flow deck v2](https://store.bitcraze.io/collections/decks/products/flow-deck-v2)
 5. One [multi-ranger deck](https://www.bitcraze.io/products/multi-ranger-deck/)
-6. 4 x pattern carpet piecs
+6. 4 x pattern carpet piecs of 60x60cm
 
 ## 2. Assembling
 Assembling your Crazyflie 2.X will probably take less than 10 minutes, but there are a few pitfalls. So make sure to follow the instructions [here](https://www.bitcraze.io/getting-started-with-the-crazyflie-2-0/#assembling).

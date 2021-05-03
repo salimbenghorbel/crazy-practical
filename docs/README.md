@@ -153,7 +153,7 @@ Before launching an example, i.e. `position_commander.py`, be sure that you upda
 To send position commands to your Crazyflie, follow the example `position_commander.py`.
 
 ## Reading and saving sensor measurements
-The file `basiclog.py` shows how to log your Crazyflie data. Add the variables to log in the `_connected` function [here](https://github.com/dronecourse-epfl/crazyflie-lib-python/blob/c7aa5b66a2a0c43e2988e27b858e5e20f0ebbd76/cp_examples/logger.py#L77).
+The file `basiclog.py` shows how to log your Crazyflie data. Add the variables to log in the `_connected` function [here](https://github.com/dronecourse-epfl/crazy-practical/blob/master/crazyflie-lib-python/cp_examples/basiclog.py#L77).
 
 A visualization of the multi-ranger measurements is available in [multiranger_pointcloud.py](https://github.com/dronecourse-epfl/crazy-practical/blob/master/crazyflie-lib-python/cp_examples/multiranger_pointcloud.py). In this file, you can see how to adjust the distance threshold of your sensors, i.e. the distance within which you want to consider measurements.
 

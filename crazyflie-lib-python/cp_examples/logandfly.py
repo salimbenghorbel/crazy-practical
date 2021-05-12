@@ -112,19 +112,11 @@ class LoggingExample:
         trajectory at fixed speed"""
 
         # Sync with drone
+
         with SyncCrazyflie(id, cf=self._cf) as scf:
             # Send position commands
             with PositionHlCommander(scf) as pc:
                 pc.up(1.0)
-                # print('Moving up')
-                pc.forward(1.0)
-                # print('Moving forward')
-                pc.left(1.0)
-                # print('Moving left')
-                pc.back(1.0)
-                # print('Moving back')
-                pc.right(1.0)
-                # print('Moving right')
 
         self._disconnected
 

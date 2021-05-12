@@ -69,10 +69,14 @@ def slightly_more_complex_usage():
 def simple_sequence():
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
         with PositionHlCommander(scf) as pc:
-            pc.forward(1.0)
-            pc.left(1.0)
-            pc.back(1.0)
-            pc.go_to(0.0, 0.0, 1.0)
+            pc.go_to(0.0, 0.0, 0.1)
+            pc.go_to(0.0, 0.0, 0.2)
+            pc.go_to(0.0, 0.0, 0.3)
+            pc.go_to(0.0, 0.0, 0.4)
+            #pc.forward(1.0)
+            #pc.left(1.0)
+            #pc.back(1.0)
+            #pc.go_to(0.0, 0.0, 1.0)
 
 
 if __name__ == '__main__':

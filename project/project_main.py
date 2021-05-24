@@ -3,7 +3,7 @@ import time
 import cv2
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from cflib.positioning.position_hl_commander import PositionHlCommander
+
 from cflib.utils.multiranger import Multiranger
 import pandas as pd
 import numpy as np
@@ -11,11 +11,13 @@ from pandas.core.indexes import multi
 
 import global_navigation as nav
 
+from custom_position_hl_commander import CustomPositionHlCommander
+
 # URI to the Crazyflie to connect to
 uri = 'radio://0/80/2M/E7E7E7E7E7'
 
 
-DEFAULT_HEIGHT = 0.4
+DEFAULT_HEIGHT = 0.3
 DEFAULT_VELOCITY = 0.3
 
 
@@ -39,17 +41,19 @@ class Robot:
     STATE_EXPLORATION_LEFT = 1
     STATE_EXPLORATION_RIGHT_BACK = 2
     STATE_EXPLORATION_LEFT_BACK = 3
+    STATE_LANDING = 4
 
     # 0.1m = 10cm precision
     GRID_PRECISION = 0.1
     DETECTION_THRESHOLD_SIDEWAY = 0.5
     DETECTION_THRESHOLD_Z = 0.5
+    OBSTACLE_AVOIDANCE_THRESHOLD = 0.2
 
-    TAKEOFF_REGION_X = [0, 2]
-    LANDING_REGION_X = [3, 6]
+    TAKEOFF_REGION_X = [0, 0.2]
+    LANDING_REGION_X = [0.2, 1]
 
-    Y_MIN = -1
-    Y_MAX = 5
+    Y_MIN = -0.5
+    Y_MAX = 0.5
 
     def __init__(self, pc, multiranger, x=0, y=0, z=DEFAULT_HEIGHT):
         ind = pd.MultiIndex.from_arrays([[]] * 2, names=('x', 'y'))
@@ -58,6 +62,9 @@ class Robot:
         self.x = x
         self.y = y
         self.z = z
+
+        self.pc = pc
+        self.multiranger = multiranger
 
         self.takeoff_position = [self.x, self.y]
 
@@ -178,15 +185,16 @@ class Robot:
         return True
 
     def behave_explore(self):
+        
         self.x, self.y, self.z = self.pc.get_position()
+        print("state: " , self.state, " position: {0} {1} {2}".format(self.x,self.y,self.z))
 
-        if self.multiranger.down < self.DETECTION_THRESHOLD_Z:
-            if self.x <= self.LANDING_REGION_X[0] and self.x >= self.LANDING_REGION_X[1]:
-                self.state = self.STATE_LANDING
+        if self.multiranger.down < self.DETECTION_THRESHOLD_Z and self.x <= self.LANDING_REGION_X[0] and self.x >= self.LANDING_REGION_X[1]:
+            self.state = self.STATE_LANDING
         elif self.state == self.STATE_EXPLORATION_RIGHT:
             # map limit reached or obstacle on right sensor
-            if self.y < self.Y_MIN or self.multiranger.right < self.GRID_PRECISION:
-                if self.multiranger.front < self.GRID_PRECISION:  # if obstacle on front sensor, go left
+            if self.y < self.Y_MIN or self.multiranger.right < self.OBSTACLE_AVOIDANCE_THRESHOLD:
+                if self.multiranger.front < self.OBSTACLE_AVOIDANCE_THRESHOLD:  # if obstacle on front sensor, go left
                     self.state = self.STATE_EXPLORATION_RIGHT_BACK
                 else:
                     # go forward and switch to left exploration
@@ -195,7 +203,7 @@ class Robot:
             else:
                 self.pc.right(self.GRID_PRECISION)
         elif self.state == self.STATE_EXPLORATION_RIGHT_BACK:
-            if self.multiranger.front > self.GRID_PRECISION:  # no obstacle on front sensor
+            if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to left exploration
                 self.pc.forward(self.GRID_PRECISION)
                 self.state = self.STATE_EXPLORATION_LEFT
@@ -203,8 +211,8 @@ class Robot:
                 self.pc.left(self.GRID_PRECISION)
         if self.state == self.STATE_EXPLORATION_LEFT:
             # map limit reached or obstacle on left sensor
-            if self.y > self.Y_MAX or self.multiranger.left < self.GRID_PRECISION:
-                if self.multiranger.front < self.GRID_PRECISION:  # if obstacle on front sensor, go right
+            if self.y > self.Y_MAX or self.multiranger.left < self.OBSTACLE_AVOIDANCE_THRESHOLD:
+                if self.multiranger.front < self.OBSTACLE_AVOIDANCE_THRESHOLD:  # if obstacle on front sensor, go right
                     self.state = self.STATE_EXPLORATION_LEFT_BACK
                 else:
                     # go forward and switch to right exploration
@@ -213,7 +221,7 @@ class Robot:
             else:
                 self.pc.left(self.GRID_PRECISION)
         elif self.state == self.STATE_EXPLORATION_LEFT_BACK:
-            if self.multiranger.front > self.GRID_PRECISION:  # no obstacle on front sensor
+            if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to right exploration
                 self.pc.forward(self.GRID_PRECISION)
                 self.state = self.STATE_EXPLORATION_RIGHT
@@ -230,12 +238,12 @@ class Robot:
 
 def main_sequence():
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
-        with PositionHlCommander(
+        with CustomPositionHlCommander(
                 scf,
                 x=0.0, y=0.0, z=0.0,
                 default_velocity=DEFAULT_HEIGHT,
                 default_height=DEFAULT_VELOCITY,
-                controller=PositionHlCommander.CONTROLLER_MELLINGER) as pc:
+                controller=CustomPositionHlCommander.CONTROLLER_MELLINGER) as pc:
             with Multiranger(scf) as multiranger:
 
                 # calibrate yaw
@@ -243,14 +251,15 @@ def main_sequence():
                 time.sleep(2)
                 pc._hl_commander.go_to(0, 0, DEFAULT_HEIGHT, 0, 2)
                 time.sleep(2)
-
+                pc.set_default_velocity(0.1)
+                
                 x, y, z = pc.get_position()
                 robot = Robot(pc, multiranger, x, y, z)
 
                 while robot.behave_explore() == True:
                     robot.update_occupancy()
                     time.sleep(0.1)
-
+                """
                 pc.up(DEFAULT_HEIGHT)
 
                 robot.build_map()
@@ -258,6 +267,9 @@ def main_sequence():
                 while robot.behave_return() == True:
                     robot.update_occupancy()
                     time.sleep(0.1)
+                """
+                #pc.down(0.2)
+                time.sleep(2)
 
 
 if __name__ == '__main__':

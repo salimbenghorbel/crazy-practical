@@ -49,8 +49,10 @@ class CustomPositionHlCommander:
     DEFAULT = None
 
     def __init__(self, crazyflie,
+                 mc,
                  multiranger,
                  x=0.0, y=0.0, z=0.0,
+                 landing_yaw = 0.0,
                  default_velocity=0.5,
                  default_height=0.5,
                  controller=CONTROLLER_PID):
@@ -81,7 +83,8 @@ class CustomPositionHlCommander:
         self._x = x
         self._y = y
         self._z = z
-
+        self.landing_yaw = landing_yaw
+        self.mc = mc
         self.multiranger = multiranger
 
         self._is_flying = False
@@ -114,13 +117,14 @@ class CustomPositionHlCommander:
         self._is_flying = True
 
         height = self._height(height)
-
+        #velocity = 0.2
         duration_s = height / self._velocity(velocity)
         self._hl_commander.takeoff(height, duration_s)
+        #self.mc.take_off(height)
         time.sleep(duration_s)
         self._z = height
 
-    def land(self, velocity=DEFAULT):
+    def land(self, velocity=DEFAULT, yaw = 0):
         """
         Go straight down and turn off the motors.
 
@@ -131,13 +135,14 @@ class CustomPositionHlCommander:
         :return:
         """
         if self._is_flying:
-            self.down(self.multiranger.down-0.1)
+            self.down(self.multiranger.down-0.1, yaw=yaw)
             duration_s = self._z / self._velocity(velocity)
             
             #self._hl_commander.land(0, duration_s)
-            #time.sleep(duration_s)
+            time.sleep(duration_s)
             self._z = 0.0
 
+            #self.mc.land()
             self._hl_commander.stop()
             self._is_flying = False
 
@@ -146,7 +151,7 @@ class CustomPositionHlCommander:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.land()
+        self.land(yaw=self.landing_yaw)
 
     def left(self, distance_m, velocity=DEFAULT):
         """
@@ -198,7 +203,7 @@ class CustomPositionHlCommander:
         """
         return self.move_distance(0.0, 0.0, distance_m, velocity)
 
-    def down(self, distance_m, velocity=DEFAULT):
+    def down(self, distance_m, velocity=DEFAULT, yaw = 0):
         """
         Go down
 
@@ -206,10 +211,10 @@ class CustomPositionHlCommander:
         :param velocity: the velocity of the motion (meters/second)
         :return:
         """
-        return self.move_distance(0.0, 0.0, -distance_m, velocity)
+        return self.move_distance(0.0, 0.0, -distance_m, velocity, yaw=yaw)
 
     def move_distance(self, distance_x_m, distance_y_m, distance_z_m,
-                      velocity=DEFAULT):
+                      velocity=DEFAULT, yaw = 0):
         """
         Move in a straight line.
         positive X is forward
@@ -227,9 +232,9 @@ class CustomPositionHlCommander:
         y = self._y + distance_y_m
         z = self._z + distance_z_m
 
-        return self.go_to(x, y, z, velocity)
+        return self.go_to(x, y, z, velocity, yaw=yaw)
 
-    def go_to(self, x, y, z=DEFAULT, velocity=DEFAULT):
+    def go_to(self, x, y, z=DEFAULT, velocity=DEFAULT, yaw=0):
         """
         Go to a position
 
@@ -248,21 +253,24 @@ class CustomPositionHlCommander:
         distance = math.sqrt(dx * dx + dy * dy + dz * dz)
 
         
-        z_list = []
+        down_list = []
+        up_list = []
+        
 
         if distance > 0.0:
             duration_s = distance / self._velocity(velocity)
-            self._hl_commander.go_to(x, y, z, 0, duration_s)
+            self._hl_commander.go_to(x, y, z, yaw, duration_s)
             
             for i in range(10):
-                z_list.append(self.multiranger.down)
+                down_list.append(self.multiranger.down)
+                up_list.append(self.multiranger.up)
                 time.sleep(duration_s/10)
 
 
             self._x = x
             self._y = y
             self._z = z
-        return z_list
+        return up_list, down_list
 
     def set_default_velocity(self, velocity):
         """

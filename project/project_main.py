@@ -10,6 +10,7 @@ import numpy as np
 from pandas.core.indexes import multi
 
 import global_navigation as nav
+import pickle
 
 from custom_position_hl_commander import CustomPositionHlCommander
 
@@ -43,14 +44,17 @@ class Robot:
     STATE_EXPLORATION_LEFT_BACK = 3
     STATE_LANDING = 4
 
-    # 0.1m = 10cm precision
-    GRID_PRECISION = 0.1
-    DETECTION_THRESHOLD_SIDEWAY = 0.5
+    # 0.4m = 40cm precision
+    GRID_PRECISION = 0.4
+    DETECTION_THRESHOLD_SIDEWAY = 0.4
     DETECTION_THRESHOLD_Z = 0.5
-    OBSTACLE_AVOIDANCE_THRESHOLD = 0.3
+    OBSTACLE_AVOIDANCE_THRESHOLD = 0.6
+    FORWARD_STEP = 0.4
 
-    TAKEOFF_REGION_X = [0, 0.4]
-    LANDING_REGION_X = [0.4, 5]
+
+    TAKEOFF_REGION_X = [0, 0.1]
+    #TAKEOFF_REGION_X = [0.5, 5]
+    LANDING_REGION_X = [0.1, 5]
 
     Y_MIN = -0.2
     Y_MAX = 0.2
@@ -127,8 +131,8 @@ class Robot:
         self.y_max = 1  # extract y_max
         self.y_min = 0  # extract y_min
 
-        x_dim = (self.x_max - self.x_min)/self.GRID_PRECISION + 1
-        y_dim = (self.y_max - self.y_min)/self.GRID_PRECISION + 1
+        x_dim = int((self.x_max - self.x_min)/self.GRID_PRECISION + 1)
+        y_dim = int((self.y_max - self.y_min)/self.GRID_PRECISION + 1)
 
         self.map = np.zeros((x_dim, y_dim))
 
@@ -185,6 +189,12 @@ class Robot:
         return True
 
     def behave_explore(self):
+        if self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
+            self.GRID_PRECISION = 0.1
+            self.FORWARD_STEP = 0.1
+        else:
+            self.GRID_PRECISION = 0.4
+            self.FORWARD_STEP = 0.4
         
         self.x, self.y, self.z = self.pc.get_position()
         print("state: " , self.state, " position: {0} {1} {2}".format(self.x,self.y,self.z), " left: {0}, right {1}".format(self.multiranger.left, self.multiranger.right))
@@ -201,14 +211,14 @@ class Robot:
                     self.state = self.STATE_EXPLORATION_RIGHT_BACK
                 else:
                     # go forward and switch to left exploration
-                    z_list = self.pc.forward(self.GRID_PRECISION)
+                    z_list = self.pc.forward(self.FORWARD_STEP)
                     self.state = self.STATE_EXPLORATION_LEFT
             else:
                 z_list = self.pc.right(self.GRID_PRECISION)
         elif self.state == self.STATE_EXPLORATION_RIGHT_BACK:
             if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to left exploration
-                z_list = self.pc.forward(self.GRID_PRECISION)
+                z_list = self.pc.forward(self.FORWARD_STEP)
                 self.state = self.STATE_EXPLORATION_LEFT
             else:
                 z_list = self.pc.left(self.GRID_PRECISION)
@@ -223,14 +233,104 @@ class Robot:
                     self.state = self.STATE_EXPLORATION_LEFT_BACK
                 else:
                     # go forward and switch to right exploration
-                    z_list = self.pc.forward(self.GRID_PRECISION)
+                    z_list = self.pc.forward(self.FORWARD_STEP)
                     self.state = self.STATE_EXPLORATION_RIGHT
             else:
                 z_list = self.pc.left(self.GRID_PRECISION)
         elif self.state == self.STATE_EXPLORATION_LEFT_BACK:
             if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to right exploration
-                z_list = self.pc.forward(self.GRID_PRECISION)
+                z_list = self.pc.forward(self.FORWARD_STEP)
+                self.state = self.STATE_EXPLORATION_RIGHT
+            else:
+                z_list = self.pc.right(self.GRID_PRECISION)
+        elif self.state == self.STATE_LANDING:
+            #self.pc.down(self.multiranger.down)
+            return False
+            # end program after landing
+        
+        """
+        if self.state != self.STATE_LANDING:
+            print("z_list: ", z_list)
+            #if any([z_value < self.DETECTION_THRESHOLD_Z for z_value in z_list]) and self.x <= self.LANDING_REGION_X[0] and self.x >= self.LANDING_REGION_X[1]:
+            if z_list != []:
+                if abs(max(z_list) - min(z_list)) > 0.025 and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
+                    if self.state == self.STATE_EXPLORATION_LEFT:
+                        self.pc.left(0.1)
+                    elif self.state == self.STATE_EXPLORATION_RIGHT:
+                        self.pc.right(0.1)
+                    #self.pc.forward(0.1)
+                    self.state = self.STATE_LANDING
+        """
+        if self.state != self.STATE_LANDING:
+            print("z_list: ", z_list)
+            #if any([z_value < self.DETECTION_THRESHOLD_Z for z_value in z_list]) and self.x <= self.LANDING_REGION_X[0] and self.x >= self.LANDING_REGION_X[1]:
+            if z_list != []:
+                if abs(max(z_list) - min(z_list)) > 0.05 and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
+                    idx = (np.argmin(z_list)+np.argmax(z_list))/2
+
+                    if self.state == self.STATE_EXPLORATION_LEFT:
+                        edge_y = -idx / len(z_list) * self.GRID_PRECISION + self.y
+                        self.pc.go_to(self.x, edge_y + 0.1)
+
+                    elif self.state == self.STATE_EXPLORATION_RIGHT:
+                        edge_y = idx/len(z_list)* self.GRID_PRECISION + self.y
+                        self.pc.go_to(self.x, edge_y - 0.1)
+                    self.pc.forward(0.1)
+                    self.state = self.STATE_LANDING
+                    
+        self.z_list = z_list
+        # always return true before the landing
+
+        return True
+
+    def behave_explore_back(self):
+        
+        self.x, self.y, self.z = self.pc.get_position()
+        print("state: " , self.state, " position: {0} {1} {2}".format(self.x,self.y,self.z), " left: {0}, right {1}".format(self.multiranger.left, self.multiranger.right))
+        self.z_list = []
+        z_list = []
+        if self.state == self.STATE_EXPLORATION_RIGHT:
+            # map limit reached or obstacle on right sensor
+            try:
+                obstacle_ahead = self.dynamic_occupancy.at[self.x,self.y-self.OBSTACLE_AVOIDANCE_THRESHOLD] == self.TILE_OBSTACLE
+            except:
+                obstacle_ahead = False
+            if self.y < self.Y_MIN or self.multiranger.right < self.OBSTACLE_AVOIDANCE_THRESHOLD or obstacle_ahead:
+                if self.multiranger.back < self.OBSTACLE_AVOIDANCE_THRESHOLD:  # if obstacle on back sensor, go left
+                    self.state = self.STATE_EXPLORATION_RIGHT_BACK
+                else:
+                    # go back and switch to left exploration
+                    z_list = self.pc.back(self.FRONT_STEP)
+                    self.state = self.STATE_EXPLORATION_LEFT
+            else:
+                z_list = self.pc.right(self.GRID_PRECISION)
+        elif self.state == self.STATE_EXPLORATION_RIGHT_BACK:
+            if self.multiranger.back > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on back sensor
+                # go back and switch to left exploration
+                z_list = self.pc.back(self.FRONT_STEP)
+                self.state = self.STATE_EXPLORATION_LEFT
+            else:
+                z_list = self.pc.left(self.GRID_PRECISION)
+        if self.state == self.STATE_EXPLORATION_LEFT:
+            # map limit reached or obstacle on left sensor
+            try:
+                obstacle_ahead = self.dynamic_occupancy.at[self.x,self.y+self.OBSTACLE_AVOIDANCE_THRESHOLD] == self.TILE_OBSTACLE
+            except:
+                obstacle_ahead = False
+            if self.y > self.Y_MAX or self.multiranger.left < self.OBSTACLE_AVOIDANCE_THRESHOLD or obstacle_ahead:
+                if self.multiranger.back < self.OBSTACLE_AVOIDANCE_THRESHOLD:  # if obstacle on back sensor, go right
+                    self.state = self.STATE_EXPLORATION_LEFT_BACK
+                else:
+                    # go back and switch to right exploration
+                    z_list = self.pc.back(self.FRONT_STEP)
+                    self.state = self.STATE_EXPLORATION_RIGHT
+            else:
+                z_list = self.pc.left(self.GRID_PRECISION)
+        elif self.state == self.STATE_EXPLORATION_LEFT_BACK:
+            if self.multiranger.back > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on back sensor
+                # go back and switch to right exploration
+                z_list = self.pc.back(self.FRONT_STEP)
                 self.state = self.STATE_EXPLORATION_RIGHT
             else:
                 z_list = self.pc.right(self.GRID_PRECISION)
@@ -243,12 +343,12 @@ class Robot:
             print("z_list: ", z_list)
             #if any([z_value < self.DETECTION_THRESHOLD_Z for z_value in z_list]) and self.x <= self.LANDING_REGION_X[0] and self.x >= self.LANDING_REGION_X[1]:
             if z_list != []:
-                if abs(max(z_list) - min(z_list)) > 0.05 and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
+                if abs(max(z_list) - min(z_list)) > 0.02 and self.x >= self.TAKEOFF_REGION_X[0] and self.x <= self.TAKEOFF_REGION_X[1]:
                     if self.state == self.STATE_EXPLORATION_LEFT:
-                        self.pc.left(self.GRID_PRECISION)
+                        self.pc.left(0.1)
                     elif self.state == self.STATE_EXPLORATION_RIGHT:
-                        self.pc.right(self.GRID_PRECISION)
-                    self.pc.forward(self.GRID_PRECISION)
+                        self.pc.right(0.1)
+                    self.pc.back(0.1)
                     self.state = self.STATE_LANDING
                     
         self.z_list = z_list
@@ -275,23 +375,39 @@ def main_sequence():
                 time.sleep(2)
                 pc._hl_commander.go_to(0, 0, DEFAULT_HEIGHT, 0, 2)
                 time.sleep(2)
-                pc.set_default_velocity(0.05)
+                pc.set_default_velocity(0.1)
                 
                 x, y, z = pc.get_position()
                 robot = Robot(pc, multiranger, x, y, z)
-
                 while robot.behave_explore() == True:
                     robot.update_occupancy()
                     #time.sleep(0.1)
-                """
-                pc.up(DEFAULT_HEIGHT)
                 
+
+                """
+                
+                pc.land()
+
+                with open('dynamic_occupancy.p', 'wb') as fp:
+                    pickle.dump(robot.dynamic_occupancy, fp)
+
+                time.sleep(2)
+                pc.take_off(velocity=DEFAULT_VELOCITY)
+                x, y, z = pc.get_position()
+                print("second takeoff. x={0} y={1} z= {2}".format(x,y,z))
+
+                while robot.behave_explore_back() == True:
+                    robot.update_occupancy()
+
                 robot.build_map()
 
-                while robot.behave_return() == True:
-                    robot.update_occupancy()
-                    time.sleep(0.1)
+                time.sleep(2)
+                pc.take_off(velocity=DEFAULT_VELOCITY)
                 """
+
+                # while robot.behave_return() == True:
+                #     robot.update_occupancy()
+                
                 
 
 

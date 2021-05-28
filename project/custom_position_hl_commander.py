@@ -255,7 +255,10 @@ class CustomPositionHlCommander:
         
         down_list = []
         up_list = []
-        
+        front_list = []
+        back_list = []
+        left_list = []
+        right_list = []
 
         if distance > 0.0:
             duration_s = distance / self._velocity(velocity)
@@ -264,13 +267,17 @@ class CustomPositionHlCommander:
             for i in range(10):
                 down_list.append(self.multiranger.down)
                 up_list.append(self.multiranger.up)
+                front_list.append(self.multiranger.front)
+                back_list.append(self.multiranger.back)
+                left_list.append(self.multiranger.left)
+                right_list.append(self.multiranger.right)
                 time.sleep(duration_s/10)
 
 
             self._x = x
             self._y = y
             self._z = z
-        return up_list, down_list
+        return up_list, down_list, front_list, back_list, left_list, right_list
 
     def set_default_velocity(self, velocity):
         """

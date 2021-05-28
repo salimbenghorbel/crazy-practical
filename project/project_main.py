@@ -193,6 +193,10 @@ class Robot:
         return True
 
     def behave_explore(self):
+
+        # storing the robot's position before movement
+        x_before_step, y_before_step = self.pc.get_position()
+
         if self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
             self.DETECTION_THRESHOLD_SIDEWAY = 0.3
             self.OBSTACLE_AVOIDANCE_THRESHOLD = 0.3
@@ -260,8 +264,10 @@ class Robot:
                 up_down = np.array(self.up_list) - np.array(self.down_list)
                 print("up_down: ", up_down, "max - min = {}".format(max(up_down) - min(up_down)))                
                 if abs(max(up_down) - min(up_down)) > 0.1 and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
+                    idx = (np.argmin(up_down)+np.argmax(up_down))/2
+                    distance_start_edge = idx/len(up_down)*0.15  # 0.15 is the robot's step in landing area
                     self.x, self.y, self.z = self.pc.get_position()
-                    self.pc.back(0.2)
+                    self.pc.go_to(x_before_step-distance_start_edge-0.15, y_before_step)
 
                     self.state = self.STATE_LANDING
         elif self.state == self.STATE_LANDING:
@@ -278,14 +284,13 @@ class Robot:
                 up_down = np.array(self.up_list) - np.array(self.down_list)
                 print("up_down: ", up_down, "max - min = {}".format(max(up_down) - min(up_down)))                
                 if abs(max(up_down) - min(up_down)) > 0.1 and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
+                    idx = (np.argmin(up_down)+np.argmax(up_down))/2
+                    distance_start_edge = idx/len(up_down)*0.15  # 0.15 is the robot's step in landing area
                     self.x, self.y, self.z = self.pc.get_position()
-
-                    
-
                     if self.state == self.STATE_EXPLORATION_LEFT:
-                        self.pc.go_to(self.x+0.45,self.y+0.2)
+                        self.pc.go_to(self.x+0.45, y_before_step+distance_start_edge+0.15)
                     elif self.state == self.STATE_EXPLORATION_RIGHT:
-                        self.pc.go_to(self.x+0.45,self.y-0.2)
+                        self.pc.go_to(self.x+0.45, y_before_step-distance_start_edge-0.15)
                     self.state = self.STATE_LANDING_BACK
         """
         if self.state != self.STATE_LANDING:

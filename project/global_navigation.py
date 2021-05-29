@@ -8,7 +8,7 @@ The method use pyvisgraph and are based off the examples from:
 
 import pyvisgraph as vg
 
-def build_obstacles(vertices_array, drone_clearance_m):
+def build_obstacles(vertices_array):
     """
     This method takes as input an array of vertices, map dimensions and drone 
     clearance to build obstacle object list which will be used with pyvisgraph API.

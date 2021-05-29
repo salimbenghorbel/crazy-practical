@@ -385,8 +385,8 @@ class Robot:
             self.edge_displacement = None
 
         elif self.state == self.LANDING_MANEUVER_BACK:
-            self.pc.set_default_velocity(0.07)
-            self.FORWARD_STEP = 0.08
+            self.pc.set_default_velocity(0.1)
+            self.FORWARD_STEP = 0.15
             self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.back(self.FORWARD_STEP)
             self.edge_displacement = self.detect_edge()
             if self.edge_displacement is not None:
@@ -396,8 +396,8 @@ class Robot:
                 self.edge_displacement = None
 
         elif self.state == self.LANDING_MANEUVER_RIGHT:
-            self.pc.set_default_velocity(0.07)
-            self.FORWARD_STEP = 0.08
+            self.pc.set_default_velocity(0.1)
+            self.FORWARD_STEP = 0.15
             self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.FORWARD_STEP)
             self.edge_displacement = self.detect_edge()
             if self.edge_displacement is not None:

@@ -55,14 +55,13 @@ class Robot:
     STATE_FORWARD = 10
 
 
-    # 0.4m = 40cm precision
-    GRID_PRECISION = 0.4
-    DETECTION_THRESHOLD_SIDEWAY = 0.4
+    # 0.1m = 10cm precision
+    GRID_PRECISION = 0.1
+    DETECTION_THRESHOLD_SIDEWAY = 4*GRID_PRECISION
     DETECTION_THRESHOLD_Z = 0.5
-    OBSTACLE_AVOIDANCE_THRESHOLD = 0.6
-    FORWARD_STEP = 0.4
-
-    SCANNER = 0.5
+    OBSTACLE_AVOIDANCE_THRESHOLD = 6*GRID_PRECISION
+    STEP = 4*GRID_PRECISION
+    SCANNER = 5*GRID_PRECISION
 
     TAKEOFF_REGION_X = [0, 0.5]
     #TAKEOFF_REGION_X = [0.5, 5]
@@ -214,7 +213,7 @@ class Robot:
             print("up_down: ", up_down, "max - min = {}".format(max(up_down) - min(up_down)))
             if abs(max(up_down) - min(up_down)) > LAND_THRESHOLD and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
                 idx = (np.argmin(up_down) + np.argmax(up_down)) / 2
-                distance_start_edge = idx / len(up_down) * self.FORWARD_STEP
+                distance_start_edge = idx / len(up_down) * self.STEP
                 print("Distance to edge is", distance_start_edge)
                 return distance_start_edge
             else:
@@ -230,7 +229,7 @@ class Robot:
                 # Get ids in list where obstacle near
                 idx_list = np.where(np.array(self.front_list < self.SCANNER))
                 # convert ids into y coordinate
-                y_obstacles = self.y_before_step - idx_list[0]*9/100*self.FORWARD_STEP
+                y_obstacles = self.y_before_step - idx_list[0]*9/100*self.STEP
                 scan = np.array(self.front_list)
                 # calculate x coordinate of obstacles basted on sensor value
                 x_obstacles = self.x + scan[idx_list[0]]
@@ -241,7 +240,7 @@ class Robot:
             if any(np.array(self.front_list < self.SCANNER)):
 
                 idx_list = np.where(np.array(self.front_list < self.SCANNER))
-                y_obstacles = self.y_before_step + idx_list[0]*9/100*self.FORWARD_STEP
+                y_obstacles = self.y_before_step + idx_list[0]*9/100*self.STEP
                 scan = np.array(self.front_list)
                 x_obstacles = self.x + scan[idx_list[0]]
 
@@ -251,7 +250,7 @@ class Robot:
             if any(np.array(self.left_list < self.SCANNER)):
 
                 idx_list = np.where(np.array(self.front_list < self.SCANNER))
-                x_obstacles = self.x_before_step + idx_list[0] * 9 / 100 * self.FORWARD_STEP # step when going forward
+                x_obstacles = self.x_before_step + idx_list[0] * 9 / 100 * self.STEP # step when going forward
                 scan = np.array(self.front_list)
                 y_obstacles = self.x + scan[idx_list[0]]
 
@@ -260,7 +259,7 @@ class Robot:
             if any(np.array(self.right_list < self.SCANNER)):
 
                 idx_list = np.where(np.array(self.front_list < self.SCANNER))
-                x_obstacles = self.x_before_step + idx_list[0] * 9 / 100 * self.FORWARD_STEP # step when going forward
+                x_obstacles = self.x_before_step + idx_list[0] * 9 / 100 * self.STEP # step when going forward
                 scan = np.array(self.front_list)
                 y_obstacles = self.x - scan[idx_list[0]]
 
@@ -278,12 +277,12 @@ class Robot:
             self.DETECTION_THRESHOLD_SIDEWAY = 0.3
             self.OBSTACLE_AVOIDANCE_THRESHOLD = 0.3
             self.GRID_PRECISION = 0.15
-            self.FORWARD_STEP = 0.15
+            self.STEP = 0.15
         else:
             self.DETECTION_THRESHOLD_SIDEWAY = 0.6
             self.OBSTACLE_AVOIDANCE_THRESHOLD = 0.6
             self.GRID_PRECISION = 0.4
-            self.FORWARD_STEP = 0.4
+            self.STEP = 0.4
         
         self.x, self.y, self.z = self.pc.get_position()
         print("state: ", self.state, " position: {0} {1} {2}".format(self.x,self.y,self.z), " left: {0}, right {1}".format(self.multiranger.left, self.multiranger.right))
@@ -300,7 +299,7 @@ class Robot:
                     self.state = self.STATE_EXPLORATION_RIGHT_BACK
                 else:
                     # go forward and switch to left exploration
-                    self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.FORWARD_STEP)
+                    self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.STEP)
                     self.edge_displacement = self.detect_edge()
                     if self.edge_displacement is not None:
                         self.state = self.STATE_FORWARD_LAND
@@ -308,7 +307,7 @@ class Robot:
                         self.state = self.STATE_EXPLORATION_LEFT
 
             else:
-                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.GRID_PRECISION)
+                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.STEP)
                 self.edge_displacement = self.detect_edge()
                 if self.edge_displacement is not None:
                     self.state = self.STATE_RIGHT_LAND
@@ -317,7 +316,7 @@ class Robot:
         elif self.state == self.STATE_EXPLORATION_RIGHT_BACK:
             if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to left exploration
-                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.FORWARD_STEP)
+                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.STEP)
                 self.edge_displacement = self.detect_edge()
                 if self.edge_displacement is not None:
                     self.state = self.STATE_FORWARD_LAND
@@ -325,7 +324,7 @@ class Robot:
                     self.state = self.STATE_EXPLORATION_LEFT
                 self.state = self.STATE_EXPLORATION_LEFT
             else:
-                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.left(self.GRID_PRECISION)
+                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.left(self.STEP)
                 self.edge_displacement = self.detect_edge()
                 if self.edge_displacement is not None:
                     self.state = self.STATE_LEFT_LAND
@@ -340,28 +339,28 @@ class Robot:
                     self.state = self.STATE_EXPLORATION_LEFT_BACK
                 else:
                     # go forward and switch to right exploration
-                    self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.FORWARD_STEP)
+                    self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.STEP)
                     self.edge_displacement = self.detect_edge()
                     if self.edge_displacement is not None:
                         self.state = self.STATE_FORWARD_LAND
                     else:
                         self.state = self.STATE_EXPLORATION_RIGHT
             else:
-                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.left(self.GRID_PRECISION)
+                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.left(self.STEP)
                 self.edge_displacement = self.detect_edge()
                 if self.edge_displacement is not None:
                     self.state = self.STATE_LEFT_LAND
         elif self.state == self.STATE_EXPLORATION_LEFT_BACK:
             if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to right exploration
-                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.FORWARD_STEP)
+                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.STEP)
                 self.edge_displacement = self.detect_edge()
                 if self.edge_displacement is not None:
                     self.state = self.STATE_FORWARD_LAND
                 else:
                     self.state = self.STATE_EXPLORATION_RIGHT
             else:
-                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.GRID_PRECISION)
+                self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.STEP)
                 self.edge_displacement = self.detect_edge()
                 if self.edge_displacement is not None:
                     self.state = self.STATE_RIGHT_LAND
@@ -386,8 +385,8 @@ class Robot:
 
         elif self.state == self.LANDING_MANEUVER_BACK:
             self.pc.set_default_velocity(0.1)
-            self.FORWARD_STEP = 0.15
-            self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.back(self.FORWARD_STEP)
+            self.STEP = 0.15
+            self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.back(self.STEP)
             self.edge_displacement = self.detect_edge()
             if self.edge_displacement is not None:
                 self.x, self.y, self.z = self.pc.get_position()
@@ -397,8 +396,8 @@ class Robot:
 
         elif self.state == self.LANDING_MANEUVER_RIGHT:
             self.pc.set_default_velocity(0.1)
-            self.FORWARD_STEP = 0.15
-            self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.FORWARD_STEP)
+            self.STEP = 0.15
+            self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.STEP)
             self.edge_displacement = self.detect_edge()
             if self.edge_displacement is not None:
                 self.x, self.y, self.z = self.pc.get_position()

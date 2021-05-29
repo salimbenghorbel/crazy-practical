@@ -253,8 +253,8 @@ class CustomPositionHlCommander:
         distance = math.sqrt(dx * dx + dy * dy + dz * dz)
 
         
-        down_list = []
         up_list = []
+        down_list = []
         front_list = []
         back_list = []
         left_list = []
@@ -265,8 +265,8 @@ class CustomPositionHlCommander:
             self._hl_commander.go_to(x, y, z, yaw, duration_s)
             
             for i in range(10):
-                down_list.append(self.multiranger.down)
-                up_list.append(self.multiranger.up)
+                up_list.append(self.multiranger.state_estimate_z)
+                down_list.append(-self.multiranger.state_estimate_z)
                 front_list.append(self.multiranger.front)
                 back_list.append(self.multiranger.back)
                 left_list.append(self.multiranger.left)

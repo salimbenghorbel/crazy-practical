@@ -23,7 +23,8 @@ uri = 'radio://0/80/2M/E7E7E7E7E7'
 
 DEFAULT_HEIGHT = 0.3
 DEFAULT_VELOCITY = 0.3
-
+PLATFORM_SIDE = 0.25
+LAND_THRESHOLD = 0.15
 
 class Robot:
     # x+ is front
@@ -46,7 +47,13 @@ class Robot:
     STATE_EXPLORATION_RIGHT_BACK = 2
     STATE_EXPLORATION_LEFT_BACK = 3
     STATE_LANDING = 4
-    STATE_LANDING_BACK = 5
+    STATE_FORWARD_LAND = 5
+    STATE_RIGHT_LAND = 6
+    STATE_LEFT_LAND = 7
+    LANDING_MANEUVER_BACK = 8
+    LANDING_MANEUVER_RIGHT = 9
+    STATE_FORWARD = 10
+
 
     # 0.4m = 40cm precision
     GRID_PRECISION = 0.4
@@ -55,10 +62,11 @@ class Robot:
     OBSTACLE_AVOIDANCE_THRESHOLD = 0.6
     FORWARD_STEP = 0.4
 
+    SCANNER = 0.5
 
     TAKEOFF_REGION_X = [0, 0.5]
     #TAKEOFF_REGION_X = [0.5, 5]
-    LANDING_REGION_X = [0.5, 5]
+    LANDING_REGION_X = [0.9, 5]
 
     Y_MIN = -0.2
     Y_MAX = 0.2
@@ -78,6 +86,11 @@ class Robot:
 
         self.fill_dynamic_occupancy(self.x, self.y, self.TILE_TAKEOFF)
         self.state = self.STATE_EXPLORATION_RIGHT
+        self.edge_displacement = None
+
+        self.x_before_step = None
+        self.y_before_step = None
+        self.z_before_step = None
 
     def truncate_to_grid_precision(self, coordinate):
         return int(coordinate/self.GRID_PRECISION)*self.GRID_PRECISION
@@ -122,7 +135,7 @@ class Robot:
         pixel_label = row[0]
 
         if pixel_label == self.TILE_OBSTACLE:
-            print(x,y,self.x_min, self.y_min)
+            print(x, y, self.x_min, self.y_min)
             i = (x - self.x_min)/self.GRID_PRECISION
             j = (y - self.y_min)/self.GRID_PRECISION
             self.map[i, j] = 255
@@ -194,10 +207,72 @@ class Robot:
 
         return True
 
+    def detect_edge(self):
+        if self.up_list != []:
+            self.x, self.y, self.z = self.pc.get_position()
+            up_down = np.array(self.up_list) - np.array(self.down_list)
+            print("up_down: ", up_down, "max - min = {}".format(max(up_down) - min(up_down)))
+            if abs(max(up_down) - min(up_down)) > LAND_THRESHOLD and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
+                idx = (np.argmin(up_down) + np.argmax(up_down)) / 2
+                distance_start_edge = idx / len(up_down) * self.FORWARD_STEP
+                print("Distance to edge is", distance_start_edge)
+                return distance_start_edge
+            else:
+                return None
+        else:
+            return None
+
+    def detect_obstacles_while_moving(self):
+
+        if self.state == self.STATE_EXPLORATION_RIGHT:
+            if any(np.array(self.front_list < self.SCANNER)):
+
+                # Get ids in list where obstacle near
+                idx_list = np.where(np.array(self.front_list < self.SCANNER))
+                # convert ids into y coordinate
+                y_obstacles = self.y_before_step - idx_list[0]*9/100*self.FORWARD_STEP
+                scan = np.array(self.front_list)
+                # calculate x coordinate of obstacles basted on sensor value
+                x_obstacles = self.x + scan[idx_list[0]]
+
+                return y_obstacles, x_obstacles
+
+        elif self.state == self.STATE_EXPLORATION_LEFT:
+            if any(np.array(self.front_list < self.SCANNER)):
+
+                idx_list = np.where(np.array(self.front_list < self.SCANNER))
+                y_obstacles = self.y_before_step + idx_list[0]*9/100*self.FORWARD_STEP
+                scan = np.array(self.front_list)
+                x_obstacles = self.x + scan[idx_list[0]]
+
+                return y_obstacles, x_obstacles
+
+        elif self.state == self.STATE_FORWARD:
+            if any(np.array(self.left_list < self.SCANNER)):
+
+                idx_list = np.where(np.array(self.front_list < self.SCANNER))
+                x_obstacles = self.x_before_step + idx_list[0] * 9 / 100 * self.FORWARD_STEP # step when going forward
+                scan = np.array(self.front_list)
+                y_obstacles = self.x + scan[idx_list[0]]
+
+                return y_obstacles, x_obstacles
+
+            if any(np.array(self.right_list < self.SCANNER)):
+
+                idx_list = np.where(np.array(self.front_list < self.SCANNER))
+                x_obstacles = self.x_before_step + idx_list[0] * 9 / 100 * self.FORWARD_STEP # step when going forward
+                scan = np.array(self.front_list)
+                y_obstacles = self.x - scan[idx_list[0]]
+
+                return y_obstacles, x_obstacles
+        else:
+            pass
+
     def behave_explore(self):
 
         # storing the robot's position before movement
-        x_before_step, y_before_step, z_before_step = self.pc.get_position()
+        if self.state != self.STATE_FORWARD_LAND and self.state != self.STATE_LEFT_LAND and self.state != self.STATE_RIGHT_LAND:
+            self.x_before_step, self.y_before_step, self.z_before_step = self.pc.get_position()
 
         if self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
             self.DETECTION_THRESHOLD_SIDEWAY = 0.3
@@ -211,7 +286,7 @@ class Robot:
             self.FORWARD_STEP = 0.4
         
         self.x, self.y, self.z = self.pc.get_position()
-        print("state: " , self.state, " position: {0} {1} {2}".format(self.x,self.y,self.z), " left: {0}, right {1}".format(self.multiranger.left, self.multiranger.right))
+        print("state: ", self.state, " position: {0} {1} {2}".format(self.x,self.y,self.z), " left: {0}, right {1}".format(self.multiranger.left, self.multiranger.right))
         self.down_list = []
         self.up_list = []
         if self.state == self.STATE_EXPLORATION_RIGHT:
@@ -226,16 +301,34 @@ class Robot:
                 else:
                     # go forward and switch to left exploration
                     self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.FORWARD_STEP)
-                    self.state = self.STATE_EXPLORATION_LEFT
+                    self.edge_displacement = self.detect_edge()
+                    if self.edge_displacement is not None:
+                        self.state = self.STATE_FORWARD_LAND
+                    else:
+                        self.state = self.STATE_EXPLORATION_LEFT
+
             else:
                 self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.GRID_PRECISION)
+                self.edge_displacement = self.detect_edge()
+                if self.edge_displacement is not None:
+                    self.state = self.STATE_RIGHT_LAND
+
+
         elif self.state == self.STATE_EXPLORATION_RIGHT_BACK:
             if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to left exploration
                 self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.FORWARD_STEP)
+                self.edge_displacement = self.detect_edge()
+                if self.edge_displacement is not None:
+                    self.state = self.STATE_FORWARD_LAND
+                else:
+                    self.state = self.STATE_EXPLORATION_LEFT
                 self.state = self.STATE_EXPLORATION_LEFT
             else:
                 self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.left(self.GRID_PRECISION)
+                self.edge_displacement = self.detect_edge()
+                if self.edge_displacement is not None:
+                    self.state = self.STATE_LEFT_LAND
         if self.state == self.STATE_EXPLORATION_LEFT:
             # map limit reached or obstacle on left sensor
             try:
@@ -248,70 +341,73 @@ class Robot:
                 else:
                     # go forward and switch to right exploration
                     self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.FORWARD_STEP)
-                    self.state = self.STATE_EXPLORATION_RIGHT
+                    self.edge_displacement = self.detect_edge()
+                    if self.edge_displacement is not None:
+                        self.state = self.STATE_FORWARD_LAND
+                    else:
+                        self.state = self.STATE_EXPLORATION_RIGHT
             else:
                 self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.left(self.GRID_PRECISION)
+                self.edge_displacement = self.detect_edge()
+                if self.edge_displacement is not None:
+                    self.state = self.STATE_LEFT_LAND
         elif self.state == self.STATE_EXPLORATION_LEFT_BACK:
             if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to right exploration
                 self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.forward(self.FORWARD_STEP)
-                self.state = self.STATE_EXPLORATION_RIGHT
+                self.edge_displacement = self.detect_edge()
+                if self.edge_displacement is not None:
+                    self.state = self.STATE_FORWARD_LAND
+                else:
+                    self.state = self.STATE_EXPLORATION_RIGHT
             else:
                 self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.GRID_PRECISION)
-        elif self.state == self.STATE_LANDING_BACK:
-            self.pc.set_default_velocity(0.05)
-            self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.back(0.05)
-            if self.up_list != []:
-                self.x, self.y, self.z = self.pc.get_position()
-                up_down = np.array(self.up_list) - np.array(self.down_list)
-                print("up_down: ", up_down, "max - min = {}".format(max(up_down) - min(up_down)))                
-                if abs(max(up_down) - min(up_down)) > 0.2 and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
-                    idx = (np.argmin(up_down)+np.argmax(up_down))/2
-                    distance_start_edge = idx/len(up_down)*0.15  # 0.15 is the robot's step in landing area
-                    self.x, self.y, self.z = self.pc.get_position()
-                    self.pc.go_to(x_before_step-distance_start_edge-0.15, y_before_step)
+                self.edge_displacement = self.detect_edge()
+                if self.edge_displacement is not None:
+                    self.state = self.STATE_RIGHT_LAND
 
-                    self.state = self.STATE_LANDING
+        elif self.state == self.STATE_FORWARD_LAND:
+            self.x, self.y, self.z = self.pc.get_position()
+            self.pc.go_to(self.x_before_step + self.edge_displacement + PLATFORM_SIDE/2, self.y + 0.5)
+            self.state = self.LANDING_MANEUVER_RIGHT
+            self.edge_displacement = None
+
+        elif self.state == self.STATE_RIGHT_LAND:
+            self.x, self.y, self.z = self.pc.get_position()
+            self.pc.go_to(self.x + 0.5, self.y_before_step - self.edge_displacement - PLATFORM_SIDE/2)
+            self.state = self.LANDING_MANEUVER_BACK
+            self.edge_displacement = None
+
+        elif self.state == self.STATE_LEFT_LAND:
+            self.x, self.y, self.z = self.pc.get_position()
+            self.pc.go_to(self.x + 0.5, self.y_before_step + self.edge_displacement + PLATFORM_SIDE/2)
+            self.state = self.LANDING_MANEUVER_BACK
+            self.edge_displacement = None
+
+        elif self.state == self.LANDING_MANEUVER_BACK:
+            self.pc.set_default_velocity(0.07)
+            self.FORWARD_STEP = 0.08
+            self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.back(self.FORWARD_STEP)
+            self.edge_displacement = self.detect_edge()
+            if self.edge_displacement is not None:
+                self.x, self.y, self.z = self.pc.get_position()
+                self.pc.go_to(self.x_before_step - self.edge_displacement - PLATFORM_SIDE/2, self.y_before_step )
+                self.state = self.STATE_LANDING
+                self.edge_displacement = None
+
+        elif self.state == self.LANDING_MANEUVER_RIGHT:
+            self.pc.set_default_velocity(0.07)
+            self.FORWARD_STEP = 0.08
+            self.up_list, self.down_list, self.front_list, self.back_list, self.left_list, self.right_list = self.pc.right(self.FORWARD_STEP)
+            self.edge_displacement = self.detect_edge()
+            if self.edge_displacement is not None:
+                self.x, self.y, self.z = self.pc.get_position()
+                self.pc.go_to(self.x_before_step, self.y_before_step - self.edge_displacement - PLATFORM_SIDE/2 )
+                self.state = self.STATE_LANDING
+                self.edge_displacement = None
+
         elif self.state == self.STATE_LANDING:
-            #self.pc.down(self.multiranger.down)
             return False
-            # end program after landing
-        
-        
-        if self.state != self.STATE_LANDING and self.state != self.STATE_LANDING_BACK:
-            
-            #if any([z_value < self.DETECTION_THRESHOLD_Z for z_value in z_list]) and self.x <= self.LANDING_REGION_X[0] and self.x >= self.LANDING_REGION_X[1]:
-            if self.up_list != []:
-                self.x, self.y, self.z = self.pc.get_position()
-                up_down = np.array(self.up_list) - np.array(self.down_list)
-                print("up_down: ", up_down, "max - min = {}".format(max(up_down) - min(up_down)))                
-                if abs(max(up_down) - min(up_down)) > 0.2 and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
-                    idx = (np.argmin(up_down)+np.argmax(up_down))/2
-                    distance_start_edge = idx/len(up_down)*0.15  # 0.15 is the robot's step in landing area
-                    self.x, self.y, self.z = self.pc.get_position()
-                    if self.state == self.STATE_EXPLORATION_LEFT:
-                        self.pc.go_to(self.x+0.45, y_before_step+distance_start_edge+0.15)
-                    elif self.state == self.STATE_EXPLORATION_RIGHT:
-                        self.pc.go_to(self.x+0.45, y_before_step-distance_start_edge-0.15)
-                    self.state = self.STATE_LANDING_BACK
-        """
-        if self.state != self.STATE_LANDING:
-            print("z_list: ", z_list)
-            #if any([z_value < self.DETECTION_THRESHOLD_Z for z_value in z_list]) and self.x <= self.LANDING_REGION_X[0] and self.x >= self.LANDING_REGION_X[1]:
-            if z_list != []:
-                if abs(max(z_list) - min(z_list)) > 0.05 and self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
-                    idx = (np.argmin(z_list)+np.argmax(z_list))/2
-
-                    if self.state == self.STATE_EXPLORATION_LEFT:
-                        edge_y = -idx / len(z_list) * self.GRID_PRECISION + self.y
-                        self.pc.go_to(self.x, edge_y + 0.15)
-
-                    elif self.state == self.STATE_EXPLORATION_RIGHT:
-                        edge_y = idx/len(z_list)* self.GRID_PRECISION + self.y
-                        self.pc.go_to(self.x, edge_y - 0.15)
-                    self.pc.forward(0.1)
-                    self.state = self.STATE_LANDING
-        """
         # always return true before the landing
         self.x, self.y, self.z = self.pc.get_position()
         return True
@@ -336,8 +432,6 @@ def main_sequence():
                     default_velocity=DEFAULT_HEIGHT,
                     default_height=DEFAULT_VELOCITY,
                     controller=CustomPositionHlCommander.CONTROLLER_MELLINGER) as pc:
-            
-                
 
                 time.sleep(1)
                 
@@ -361,8 +455,7 @@ def main_sequence():
                     pickle.dump(robot.dynamic_occupancy, fp)
                 
     time.sleep(2)
-    #robot.TAKEOFF_REGION_X, robot.LANDING_REGION_X = robot.LANDING_REGION_X, robot.TAKEOFF_REGION_X
-    robot.state= robot.STATE_EXPLORATION_RIGHT
+    robot.state = robot.STATE_EXPLORATION_RIGHT
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
         time.sleep(0.5)
         scf.cf.param.set_value('kalman.resetEstimation','1')        
@@ -382,27 +475,21 @@ def main_sequence():
                     default_velocity=DEFAULT_HEIGHT,
                     default_height=DEFAULT_VELOCITY,
                     controller=CustomPositionHlCommander.CONTROLLER_MELLINGER) as pc:
-            
-                
 
                 time.sleep(2)
                 
                 pc.set_default_velocity(0.1)
-                
-                
+
                 robot.pc = pc
                 robot.multiranger = multiranger
                 x, y, z = pc.get_position()
                 robot.x = x                
                 robot.y = y
                 robot.z = z
-
                 while robot.behave_explore() == True:
                     robot.update_occupancy()
-                    
                 with open('dynamic_occupancy.p', 'wb') as fp:
                     pickle.dump(robot.dynamic_occupancy, fp)
-                
 
 
 if __name__ == '__main__':

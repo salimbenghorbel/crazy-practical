@@ -57,18 +57,18 @@ class Robot:
 
     # 0.1m = 10cm precision
     GRID_PRECISION = 0.1
-    DETECTION_THRESHOLD_SIDEWAY = 4*GRID_PRECISION
+    DETECTION_THRESHOLD_SIDEWAY = 8*GRID_PRECISION
     DETECTION_THRESHOLD_Z = 0.5
-    OBSTACLE_AVOIDANCE_THRESHOLD = 6*GRID_PRECISION
-    STEP = 4*GRID_PRECISION
-    SCANNER = 5*GRID_PRECISION
+    OBSTACLE_AVOIDANCE_THRESHOLD = 8*GRID_PRECISION
+    STEP = 6*GRID_PRECISION
+    SCANNER = 8*GRID_PRECISION
 
-    TAKEOFF_REGION_X = [0, 0.5]
+    TAKEOFF_REGION_X = [0, 2]
     #TAKEOFF_REGION_X = [0.5, 5]
-    LANDING_REGION_X = [0.9, 5]
+    LANDING_REGION_X = [2, 5]
 
-    Y_MIN = -0.2
-    Y_MAX = 0.2
+    Y_MIN = -0.8
+    Y_MAX = 0.3
 
     def __init__(self, pc, multiranger, x=0, y=0, z=DEFAULT_HEIGHT):
         ind = pd.MultiIndex.from_arrays([[]] * 2, names=('x', 'y'))
@@ -189,12 +189,13 @@ class Robot:
         obstacles = nav.build_obstacles(connected_points_m)
         graph = nav.build_visgraph(obstacles)
         # apply A* to extract optimal path and target points coordinates.
-        sp = nav.apply_astar(graph, [self.x, self.y], self.takeoff_position)
+        sp = nav.apply_astar(graph, [self.x, self.y], 
+        [-self.takeoff_position[0] + self.landing_position[0], -self.takeoff_position[1] + self.landing_position[1] ])
         self.all_target_points = []
         for i in range(0, len(sp)):
             self.all_target_points.append([sp[i].x, sp[i].y])
         self.target_point = self.all_target_points[0]
-
+        print(self.all_target_points)
     def find_next_target_point(self):
         """
         find the next target points in the list f all target points
@@ -204,21 +205,22 @@ class Robot:
         self.target_point[1] = self.all_target_points[i+1][1]
 
     def behave_return(self):
+        self.x, self.y, self.z = self.pc.get_position()
         self.GRID_PRECISION = 0.1
-        if self.truncate_to_grid_precision(self.x) == self.truncate_to_grid_precision(self.takeoff_position[0]) and \
-                self.truncate_to_grid_precision(self.y) == self.truncate_to_grid_precision(self.takeoff_position[1]):
-
-            self.pc.down(self.multiranger.down)
+        self.STEP = 0.1
+        if self.truncate_to_grid_precision(self.x) == self.truncate_to_grid_precision(self.all_target_points[-1][0]) and \
+                self.truncate_to_grid_precision(self.y) == self.truncate_to_grid_precision(self.all_target_points[-1][1]):
             return False
         elif self.multiranger.front < self.GRID_PRECISION or self.multiranger.back < self.GRID_PRECISION or \
                 self.multiranger.left < self.GRID_PRECISION or self.multiranger.right < self.GRID_PRECISION:
             self.build_map()
-        elif self.truncate_to_grid_precision(self.x) == self.truncate_to_grid_precision(self.target_point[0]) and \
+            self.find_next_target_point()
+        if self.truncate_to_grid_precision(self.x) == self.truncate_to_grid_precision(self.target_point[0]) and \
                 self.truncate_to_grid_precision(self.y) == self.truncate_to_grid_precision(self.target_point[1]):
             self.find_next_target_point()
-        else:
-            self.pc.go_to(self.x + self.GRID_PRECISION * np.sign(self.target_point[0] - self.x),
-                          self.y + self.GRID_PRECISION * np.sign(self.target_point[1] - self.y))
+        #self.pc.go_to(self.x + self.STEP * np.sign(self.target_point[0] - self.x),
+        #                self.y - self.STEP * np.sign(self.target_point[1] - self.y))
+        self.pc.go_to(self.target_point[0], self.target_point[1])
 
         return True
 
@@ -284,21 +286,20 @@ class Robot:
             pass
 
     def behave_explore(self):
+        
 
         # storing the robot's position before movement
         if self.state != self.STATE_FORWARD_LAND and self.state != self.STATE_LEFT_LAND and self.state != self.STATE_RIGHT_LAND:
             self.x_before_step, self.y_before_step, self.z_before_step = self.pc.get_position()
 
         if self.x >= self.LANDING_REGION_X[0] and self.x <= self.LANDING_REGION_X[1]:
-            self.DETECTION_THRESHOLD_SIDEWAY = 0.3
-            self.OBSTACLE_AVOIDANCE_THRESHOLD = 0.3
-            self.GRID_PRECISION = 0.15
-            self.STEP = 0.15
+            self.DETECTION_THRESHOLD_SIDEWAY = 4 * self.GRID_PRECISION
+            self.OBSTACLE_AVOIDANCE_THRESHOLD =  4* self.GRID_PRECISION
+            self.STEP = 2* self.GRID_PRECISION
         else:
-            self.DETECTION_THRESHOLD_SIDEWAY = 0.6
-            self.OBSTACLE_AVOIDANCE_THRESHOLD = 0.6
-            self.GRID_PRECISION = 0.4
-            self.STEP = 0.4
+            self.DETECTION_THRESHOLD_SIDEWAY = 8 * self.GRID_PRECISION
+            self.OBSTACLE_AVOIDANCE_THRESHOLD = 8 * self.GRID_PRECISION
+            self.STEP = 6 * self.GRID_PRECISION
         
         self.x, self.y, self.z = self.pc.get_position()
         print("state: ", self.state, " position: {0} {1} {2}".format(self.x,self.y,self.z), " left: {0}, right {1}".format(self.multiranger.left, self.multiranger.right))
@@ -439,7 +440,11 @@ def main_sequence():
 
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
         time.sleep(0.5)
-        scf.cf.param.set_value('kalman.resetEstimation','1')
+        scf.cf.param.set_value('kalman.resetEstimation','1')        
+        time.sleep(0.1)
+        scf.cf.param.set_value('kalman.resetEstimation','0')
+        time.sleep(0.1)
+        scf.cf.param.set_value('kalman.resetEstimation','1')        
         time.sleep(0.1)
         scf.cf.param.set_value('kalman.resetEstimation','0')
 
@@ -474,18 +479,26 @@ def main_sequence():
                     
                 with open('dynamic_occupancy.p', 'wb') as fp:
                     pickle.dump(robot.dynamic_occupancy, fp)
+            landing_yaw = multiranger.state_estimate_yaw
                 
     time.sleep(2)
     robot.state = robot.STATE_EXPLORATION_RIGHT
+    robot.x, robot.y = 0,0
     robot.change_dynamic_occupancy_referential()
+    robot.build_map()
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
         time.sleep(0.5)
+        scf.cf.param.set_value('kalman.resetEstimation','1')        
+        time.sleep(0.1)
+        scf.cf.param.set_value('kalman.resetEstimation','0')
+        time.sleep(0.1)
         scf.cf.param.set_value('kalman.resetEstimation','1')        
         time.sleep(0.1)
         scf.cf.param.set_value('kalman.resetEstimation','0')
 
         scf.cf.param.set_value('kalman.initialX',str(robot.x))
         scf.cf.param.set_value('kalman.initialY',str(robot.y))
+        scf.cf.param.set_value('kalman.initialYaw',str(landing_yaw - math.pi))
         time.sleep(0.1)
         with CustomMultiranger(scf, rate_ms=50) as multiranger:
             with CustomPositionHlCommander(
@@ -510,6 +523,10 @@ def main_sequence():
                 robot.z = z
                 while robot.behave_return() == True:
                     robot.update_occupancy()
+                robot.pc.back(2*robot.GRID_PRECISION)
+                while robot.behave_explore() == True:
+                    robot.update_occupancy()
+
                 with open('dynamic_occupancy.p', 'wb') as fp:
                     pickle.dump(robot.dynamic_occupancy, fp)
 

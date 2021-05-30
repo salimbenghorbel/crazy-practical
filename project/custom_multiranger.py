@@ -33,6 +33,7 @@ class CustomMultiranger:
     UP = 'range.up'
     DOWN = 'range.zrange'
     STATE_ESTIMATE_Z = 'stateEstimate.z'
+    STATE_ESTIMATE_YAW = 'stateEstimate.yaw'
 
     def __init__(self, crazyflie, rate_ms=100, zranger=False):
         if isinstance(crazyflie, SyncCrazyflie):
@@ -48,6 +49,7 @@ class CustomMultiranger:
         self._right_distance = None
         self._down_distance = None
         self._state_estimate_z = None
+        self._state_estimate_yaw = None
 
     def _create_log_config(self, rate_ms):
         log_config = LogConfig('multiranger', rate_ms)
@@ -58,6 +60,7 @@ class CustomMultiranger:
         log_config.add_variable(self.UP)
         log_config.add_variable(self.DOWN)
         log_config.add_variable(self.STATE_ESTIMATE_Z,'float')
+        log_config.add_variable(self.STATE_ESTIMATE_YAW,'float')
 
         log_config.data_received_cb.add_callback(self._data_received)
 
@@ -83,6 +86,7 @@ class CustomMultiranger:
             self._down_distance = self._convert_log_to_distance(data[self.DOWN]
                                                                 )
         self._state_estimate_z = data[self.STATE_ESTIMATE_Z]
+        self._state_estimate_yaw = data[self.STATE_ESTIMATE_YAW]
 
     def stop(self):
         self._log_config.delete()
@@ -114,6 +118,10 @@ class CustomMultiranger:
     @property
     def state_estimate_z(self):
         return self._state_estimate_z
+    
+    @property
+    def state_estimate_yaw(self):
+        return self._state_estimate_yaw
 
     def __enter__(self):
         self.start()

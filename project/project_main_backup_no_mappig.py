@@ -175,7 +175,7 @@ class Robot:
             connected_points_m, self.GRID_PRECISION)
         graph = nav.build_visgraph(obstacles)
         # apply A* to extract optimal path and target points coordinates.
-        sp = nav.apply_astar(graph, [self.x, self.y], self.takeoff_position)
+        sp = nav.apply_astar(graph, [0, 0], self.takeoff_position)
         self.all_target_points = []
         for i in range(0, len(sp)):
             self.all_target_points.append([sp[i].x, sp[i].y])
@@ -190,8 +190,8 @@ class Robot:
         self.target_point[1] = self.all_target_points[i+1][1]
 
     def behave_return(self):
-        if self.truncate_to_grid_precision(self.x) == self.truncate_to_grid_precision(self.takeoff_position[0]) and \
-                self.truncate_to_grid_precision(self.y) == self.truncate_to_grid_precision(self.takeoff_position[1]):
+        if self.truncate_to_grid_precision(self.x) == self.truncate_to_grid_precision(self.all_target_points[-1][0]) and \
+                self.truncate_to_grid_precision(self.y) == self.truncate_to_grid_precision(self.all_target_points[-1][1]):
 
             self.pc.down(self.multiranger.down)
             return False
@@ -451,6 +451,7 @@ def main_sequence():
                 
                 while robot.behave_explore() == True:
                     robot.update_occupancy()
+                
                 time.sleep(2)
                 pc._hl_commander.go_to(pc._x, pc._y, DEFAULT_HEIGHT, math.pi, 2)
                 time.sleep(3)

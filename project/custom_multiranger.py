@@ -1,3 +1,7 @@
+"""
+Readaption of Multiranger with extra features.
+"""
+
 # -*- coding: utf-8 -*-
 #
 #     ||          ____  _ __

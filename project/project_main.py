@@ -1,32 +1,43 @@
+"""
+Main program of CrazyPractical, run this file to perform the project
+sequence.
+"""
+
 import cflib.crtp
-import time
-import cv2
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.positioning.motion_commander import MotionCommander
 
-from custom_multiranger import CustomMultiranger
+import time
+import cv2
+import pickle
 import pandas as pd
 import numpy as np
 from pandas.core.indexes import multi
+import math
 
 import global_navigation as nav
-import pickle
-
+from custom_multiranger import CustomMultiranger
 from custom_position_hl_commander import CustomPositionHlCommander
 
-import math
 
 # URI to the Crazyflie to connect to
 uri = 'radio://0/80/2M/E7E7E7E7E7'
 
-
+# Shared constants between objects.
 DEFAULT_HEIGHT = 0.3
 DEFAULT_VELOCITY = 0.3
 PLATFORM_SIDE = 0.25
 LAND_THRESHOLD = 0.09
 
 class Robot:
+    """
+    Drone class, created to handle the states of the Crazyflie and controls its movements.
+    It handles map exploration, obstacle avoidance, occupancy grid generation and return
+    path optimization.
+    """
+
+
     # x+ is front
     # x- is back
     # y+ is left
@@ -63,14 +74,18 @@ class Robot:
     STEP = 6*GRID_PRECISION
     SCANNER = 8*GRID_PRECISION
 
+    # Dimensions of takeoff and landing regions along x coordinate
     TAKEOFF_REGION_X = [0, 2]
-    #TAKEOFF_REGION_X = [0.5, 5]
     LANDING_REGION_X = [2, 5]
 
+    # Dimensions of the map along y coordinate.
     Y_MIN = -0.8
     Y_MAX = 0.3
 
     def __init__(self, pc, multiranger, x=0, y=0, z=DEFAULT_HEIGHT):
+        """
+        Constructor of robot class.
+        """
         ind = pd.MultiIndex.from_arrays([[]] * 2, names=('x', 'y'))
         self.dynamic_occupancy = pd.Series(
             index=ind, name='occupancy_value', dtype='int')
@@ -92,9 +107,16 @@ class Robot:
         self.z_before_step = None
 
     def truncate_to_grid_precision(self, coordinate):
+        """
+        This method takes a coordinate number and truncates to be within grid precision.
+        """
         return int(coordinate/self.GRID_PRECISION)*self.GRID_PRECISION
 
     def fill_dynamic_occupancy(self, x, y, tile_state):
+        """
+        This method puts a new tile state in the dynamic occupancy, knowing tile 
+        coordinates x and y.
+        """
         x_truncated = self.truncate_to_grid_precision(x)
         y_truncated = self.truncate_to_grid_precision(y)
 
@@ -102,6 +124,10 @@ class Robot:
         self.dynamic_occupancy.at[x_truncated, y_truncated] = tile_state
 
     def update_occupancy(self):
+        """
+        This method checks the readings of the multiranger sensors and fills the dynamic occupancy
+        with the corresponding tile states in case of obstacles.
+        """
         self.x, self.y, self.z = self.pc.get_position()
 
         if self.multiranger.front < self.DETECTION_THRESHOLD_SIDEWAY:
@@ -129,6 +155,10 @@ class Robot:
             self.fill_dynamic_occupancy(self.x, self.y, self.TILE_FREE)
 
     def put_pixel_in_map(self, row):
+        """
+        This method is applied on each row of the dynamic occupancy and puts 
+        obstacle tiles in their corresponding position on the map.
+        """
         x = row['x']
         y = row['y']
         pixel_label = row['occupancy_value']
@@ -139,6 +169,10 @@ class Robot:
             self.map[i, j] = 255
 
     def change_dynamic_occupancy_referential(self):
+        """
+        This method performs a referential transformation when changing the origin from the takeoff
+        position to the landing pad position and applies to the dynamic occupancy map.
+        """
         old_occupancy_reset_index = self.dynamic_occupancy.reset_index()
         ind = pd.MultiIndex.from_arrays([[]] * 2, names=('x', 'y'))
         self.dynamic_occupancy = pd.Series(
@@ -152,6 +186,12 @@ class Robot:
         
 
     def build_map(self):
+        """
+        This method builds a numpy array with the obstacle points previously detected
+        by the dynamic occupancy mapping along the robot movement. It detects the 
+        different blocks and uses pyvisgraph to generate a list of setpoints
+        to follow according to A* path planning algorithm.
+        """
         
         dynamic_occupancy_reset_index = self.dynamic_occupancy.reset_index()
         # First create array with detected obstacles.
@@ -196,15 +236,21 @@ class Robot:
             self.all_target_points.append([sp[i].x, sp[i].y])
         self.target_point = self.all_target_points[0]
         print(self.all_target_points)
+
     def find_next_target_point(self):
         """
-        find the next target points in the list f all target points
+        find the next target points in the list of all target points
         """
         i = self.all_target_points.index(self.target_point)
         self.target_point[0] = self.all_target_points[i+1][0]
         self.target_point[1] = self.all_target_points[i+1][1]
 
     def behave_return(self):
+        """
+        This method handles the movement of the robot when moving back to the takeoff pad.
+        It moves each time to a target setpoint. If at any time, an obstacle is detected, it recreates the
+        map and generates new setpoints.
+        """
         self.x, self.y, self.z = self.pc.get_position()
         self.GRID_PRECISION = 0.1
         self.STEP = 0.1
@@ -218,13 +264,16 @@ class Robot:
         if self.truncate_to_grid_precision(self.x) == self.truncate_to_grid_precision(self.target_point[0]) and \
                 self.truncate_to_grid_precision(self.y) == self.truncate_to_grid_precision(self.target_point[1]):
             self.find_next_target_point()
-        #self.pc.go_to(self.x + self.STEP * np.sign(self.target_point[0] - self.x),
-        #                self.y - self.STEP * np.sign(self.target_point[1] - self.y))
         self.pc.go_to(self.target_point[0], self.target_point[1])
 
         return True
 
     def detect_edge(self):
+        """
+        This method detects a brutal variation in z state estimation after each step and returns 
+        its position relative to the drone's position before the step. Returns none if no z variation
+        detected.
+        """
         if self.up_list != []:
             self.x, self.y, self.z = self.pc.get_position()
             up_down = np.array(self.up_list) - np.array(self.down_list)
@@ -240,12 +289,17 @@ class Robot:
             return None
 
     def detect_obstacles_while_moving(self):
-
+        """
+        #### UNUSED ####
+        This method is called after each step. Tables of values of TOF sensors during the step
+        are checked. If some are below the SCANNER value, the map's corresponding tiles are
+        updated as obstacle tiles.
+        """
         if self.state == self.STATE_EXPLORATION_RIGHT:
             if any(np.array(self.front_list < self.SCANNER)):
 
                 # Get ids in list where obstacle near
-                idx_list = np.where(np.array(self.front_list < self.SCANNER))
+                idx_list = np.where(np.array(self.front_list) < self.SCANNER)
                 # convert ids into y coordinate
                 y_obstacles = self.y_before_step - idx_list[0]*9/100*self.STEP
                 scan = np.array(self.front_list)
@@ -257,7 +311,7 @@ class Robot:
         elif self.state == self.STATE_EXPLORATION_LEFT:
             if any(np.array(self.front_list < self.SCANNER)):
 
-                idx_list = np.where(np.array(self.front_list < self.SCANNER))
+                idx_list = np.where(np.array(self.front_list) < self.SCANNER)
                 y_obstacles = self.y_before_step + idx_list[0]*9/100*self.STEP
                 scan = np.array(self.front_list)
                 x_obstacles = self.x + scan[idx_list[0]]
@@ -267,7 +321,7 @@ class Robot:
         elif self.state == self.STATE_FORWARD:
             if any(np.array(self.left_list < self.SCANNER)):
 
-                idx_list = np.where(np.array(self.front_list < self.SCANNER))
+                idx_list = np.where(np.array(self.front_list) < self.SCANNER)
                 x_obstacles = self.x_before_step + idx_list[0] * 9 / 100 * self.STEP # step when going forward
                 scan = np.array(self.front_list)
                 y_obstacles = self.x + scan[idx_list[0]]
@@ -276,7 +330,7 @@ class Robot:
 
             if any(np.array(self.right_list < self.SCANNER)):
 
-                idx_list = np.where(np.array(self.front_list < self.SCANNER))
+                idx_list = np.where(np.array(self.front_list) < self.SCANNER)
                 x_obstacles = self.x_before_step + idx_list[0] * 9 / 100 * self.STEP # step when going forward
                 scan = np.array(self.front_list)
                 y_obstacles = self.x - scan[idx_list[0]]
@@ -286,8 +340,11 @@ class Robot:
             pass
 
     def behave_explore(self):
-        
-
+        """
+        This method is used to handle the states and movements of the robot during the exploration of the map.
+        It is called periodically at each iteration and always returns True until the landing pad is properly
+        detected and the robot is ready to land.
+        """
         # storing the robot's position before movement
         if self.state != self.STATE_FORWARD_LAND and self.state != self.STATE_LEFT_LAND and self.state != self.STATE_RIGHT_LAND:
             self.x_before_step, self.y_before_step, self.z_before_step = self.pc.get_position()
@@ -305,6 +362,7 @@ class Robot:
         print("state: ", self.state, " position: {0} {1} {2}".format(self.x,self.y,self.z), " left: {0}, right {1}".format(self.multiranger.left, self.multiranger.right))
         self.down_list = []
         self.up_list = []
+        # Handling state when the robot is the exploring to the right.
         if self.state == self.STATE_EXPLORATION_RIGHT:
             # map limit reached or obstacle on right sensor
             try:
@@ -329,7 +387,7 @@ class Robot:
                 if self.edge_displacement is not None:
                     self.state = self.STATE_RIGHT_LAND
 
-
+        # Handling state when the robot is backing up to the left after detecting an obstacle from the front sensor.
         elif self.state == self.STATE_EXPLORATION_RIGHT_BACK:
             if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to left exploration
@@ -345,6 +403,7 @@ class Robot:
                 self.edge_displacement = self.detect_edge()
                 if self.edge_displacement is not None:
                     self.state = self.STATE_LEFT_LAND
+        # Handling state when the robot is the exploring to the left.
         if self.state == self.STATE_EXPLORATION_LEFT:
             # map limit reached or obstacle on left sensor
             try:
@@ -367,6 +426,7 @@ class Robot:
                 self.edge_displacement = self.detect_edge()
                 if self.edge_displacement is not None:
                     self.state = self.STATE_LEFT_LAND
+        # Handling state when the robot is backing up to the right after detecting an obstacle from the front sensor.
         elif self.state == self.STATE_EXPLORATION_LEFT_BACK:
             if self.multiranger.front > self.OBSTACLE_AVOIDANCE_THRESHOLD:  # no obstacle on front sensor
                 # go forward and switch to right exploration
@@ -381,25 +441,26 @@ class Robot:
                 self.edge_displacement = self.detect_edge()
                 if self.edge_displacement is not None:
                     self.state = self.STATE_RIGHT_LAND
-
+        # Handling state when the robot detected the landing pad while moving forward.
         elif self.state == self.STATE_FORWARD_LAND:
             self.x, self.y, self.z = self.pc.get_position()
             self.pc.go_to(self.x_before_step + self.edge_displacement + PLATFORM_SIDE/2, self.y + 0.5)
             self.state = self.LANDING_MANEUVER_RIGHT
             self.edge_displacement = None
-
+        # Handling state when the robot detected the landing pad while moving right.
         elif self.state == self.STATE_RIGHT_LAND:
             self.x, self.y, self.z = self.pc.get_position()
             self.pc.go_to(self.x + 0.5, self.y_before_step - self.edge_displacement - PLATFORM_SIDE/2)
             self.state = self.LANDING_MANEUVER_BACK
             self.edge_displacement = None
-
+        # Handling state when the robot detected the landing pad while moving left.
         elif self.state == self.STATE_LEFT_LAND:
             self.x, self.y, self.z = self.pc.get_position()
             self.pc.go_to(self.x + 0.5, self.y_before_step + self.edge_displacement + PLATFORM_SIDE/2)
             self.state = self.LANDING_MANEUVER_BACK
             self.edge_displacement = None
-
+        # Handling state when the robot is backing up, looking for the landing pad after having detected an edge while approaching
+        # from the right or left
         elif self.state == self.LANDING_MANEUVER_BACK:
             self.pc.set_default_velocity(0.1)
             self.STEP = 0.15
@@ -412,7 +473,8 @@ class Robot:
                 self.pc.go_to(self.x_before_step - self.edge_displacement - PLATFORM_SIDE/2, self.y_before_step )
                 self.state = self.STATE_LANDING
                 self.edge_displacement = None
-
+        # Handling state when the robot is backing up from the right, looking for the landing pad after having detected an edge while approaching
+        # from the front
         elif self.state == self.LANDING_MANEUVER_RIGHT:
             self.pc.set_default_velocity(0.1)
             self.STEP = 0.15
@@ -425,19 +487,26 @@ class Robot:
                 self.pc.go_to(self.x_before_step, self.y_before_step - self.edge_displacement - PLATFORM_SIDE/2 )
                 self.state = self.STATE_LANDING
                 self.edge_displacement = None
-
+        # Handling state of landing, storing landing coordinates
         elif self.state == self.STATE_LANDING:
             self.x, self.y, self.z = self.pc.get_position()
             self.landing_position = [self.x, self.y]
             return False
-        # always return true before the landing
+        
         self.x, self.y, self.z = self.pc.get_position()
+        # always return true before the landing
         return True
 
 
 def main_sequence():
+    """
+    Main sequence of robot movement. It handles takeoff, map exploration, obstacle avoidance,
+    landing pad detection, landing, then building of an occupancy grid, returning to start position
+    and finally landing.
+    """
     robot = Robot(None, None, 0, 0, 0)
 
+    # Forward run
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
         time.sleep(0.5)
         scf.cf.param.set_value('kalman.resetEstimation','1')        
@@ -476,16 +545,15 @@ def main_sequence():
                 time.sleep(2)
                 pc._hl_commander.go_to(pc._x, pc._y, DEFAULT_HEIGHT, math.pi, 2)
                 time.sleep(3)
-                    
-                with open('dynamic_occupancy.p', 'wb') as fp:
-                    pickle.dump(robot.dynamic_occupancy, fp)
-            landing_yaw = multiranger.state_estimate_yaw
                 
+            landing_yaw = multiranger.state_estimate_yaw
+    # build occupancy map            
     time.sleep(2)
     robot.state = robot.STATE_EXPLORATION_RIGHT
     robot.x, robot.y = 0,0
     robot.change_dynamic_occupancy_referential()
     robot.build_map()
+    # return run.
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
         time.sleep(0.5)
         scf.cf.param.set_value('kalman.resetEstimation','1')        
@@ -523,12 +591,10 @@ def main_sequence():
                 robot.z = z
                 while robot.behave_return() == True:
                     robot.update_occupancy()
+                # To compensate for estimation drift, start looking again for takeoff pad
                 robot.pc.back(2*robot.GRID_PRECISION)
                 while robot.behave_explore() == True:
                     robot.update_occupancy()
-
-                with open('dynamic_occupancy.p', 'wb') as fp:
-                    pickle.dump(robot.dynamic_occupancy, fp)
 
 
 if __name__ == '__main__':
